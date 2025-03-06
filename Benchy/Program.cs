@@ -27,7 +27,7 @@ rootCommand.SetHandler((repoPath, baselineCommit, comparisonCommit) =>
     {
         // Create benchmark comparer instance using the factory method
         var comparer = BenchmarkComparer.Create(repoPath);
-        
+
         // Run the benchmark comparison with the commit references
         comparer.RunComparison(baselineCommit, comparisonCommit);
     }

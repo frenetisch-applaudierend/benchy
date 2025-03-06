@@ -26,8 +26,7 @@ public class BenchmarkComparer
     /// <exception cref="BenchmarkComparisonException">Thrown when there's an error with the repository</exception>
     public static BenchmarkComparer Create(DirectoryInfo repositoryPath)
     {
-        if (repositoryPath == null)
-            throw new ArgumentNullException(nameof(repositoryPath));
+        ArgumentNullException.ThrowIfNull(repositoryPath);
 
         if (!repositoryPath.Exists)
             throw new BenchmarkComparisonException($"Directory does not exist: {repositoryPath.FullName}");
@@ -55,11 +54,8 @@ public class BenchmarkComparer
     /// <exception cref="BenchmarkComparisonException">Thrown when there's an error during comparison</exception>
     public void RunComparison(string baselineCommit, string comparisonCommit)
     {
-        if (string.IsNullOrEmpty(baselineCommit))
-            throw new ArgumentNullException(nameof(baselineCommit));
-            
-        if (string.IsNullOrEmpty(comparisonCommit))
-            throw new ArgumentNullException(nameof(comparisonCommit));
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(baselineCommit, nameof(baselineCommit));
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(comparisonCommit, nameof(comparisonCommit));
 
         // Create temporary directories
         string baselineTempDir = CreateTempDirectory("baseline");
@@ -71,21 +67,21 @@ public class BenchmarkComparer
             Console.WriteLine($"Comparing benchmark performance between commits:");
             Console.WriteLine($"  - Baseline: {baselineCommit}");
             Console.WriteLine($"  - Comparison: {comparisonCommit}");
-            
+
             // Validate the commits exist in the repository
             ValidateCommitExists(baselineCommit);
             ValidateCommitExists(comparisonCommit);
-            
+
             // Clone repo at specific commits to temporary directories
             Console.WriteLine($"Cloning baseline commit to {baselineTempDir}...");
             ShallowCloneAtCommit(_repositoryPath, baselineCommit, baselineTempDir);
-            
+
             Console.WriteLine($"Cloning comparison commit to {comparisonTempDir}...");
             ShallowCloneAtCommit(_repositoryPath, comparisonCommit, comparisonTempDir);
-            
+
             // TODO: Run benchmarks in each directory
             // TODO: Compare results
-            
+
             Console.WriteLine("Benchmark comparison completed!");
         }
         catch (Exception ex) when (!(ex is BenchmarkComparisonException))
@@ -106,7 +102,7 @@ public class BenchmarkComparer
     /// <param name="sourceRepoPath">Path to the source repository</param>
     /// <param name="commitRef">Commit reference to clone</param>
     /// <param name="targetDirectory">Directory to clone to</param>
-    private void ShallowCloneAtCommit(string sourceRepoPath, string commitRef, string targetDirectory)
+    private static void ShallowCloneAtCommit(string sourceRepoPath, string commitRef, string targetDirectory)
     {
         try
         {
@@ -193,12 +189,7 @@ public class BenchmarkComparer
     {
         try
         {
-            var commit = _repository.Lookup<Commit>(commitReference);
-            if (commit == null)
-            {
-                throw new BenchmarkComparisonException($"Commit not found: '{commitReference}'");
-            }
-            return commit;
+            return _repository.Lookup<Commit>(commitReference) ?? throw new BenchmarkComparisonException($"Commit not found: '{commitReference}'");
         }
         catch (Exception ex) when (!(ex is BenchmarkComparisonException))
         {
@@ -211,7 +202,7 @@ public class BenchmarkComparer
     /// </summary>
     /// <param name="prefix">Prefix for the directory name</param>
     /// <returns>Path to the temporary directory</returns>
-    private string CreateTempDirectory(string prefix)
+    private static string CreateTempDirectory(string prefix)
     {
         string tempDir = Path.Combine(Path.GetTempPath(), $"benchy_{prefix}_{Path.GetRandomFileName()}");
         Directory.CreateDirectory(tempDir);
@@ -233,7 +224,7 @@ public class BenchmarkComparer
                 throw new BenchmarkComparisonException($"Commit not found: '{commitReference}'");
             }
         }
-        catch (Exception ex) when (!(ex is BenchmarkComparisonException))
+        catch (Exception ex) when (ex is not BenchmarkComparisonException)
         {
             throw new BenchmarkComparisonException($"Error looking up commit '{commitReference}': {ex.Message}", ex);
         }
@@ -243,7 +234,7 @@ public class BenchmarkComparer
     /// Cleans up a temporary directory
     /// </summary>
     /// <param name="directory">The directory to clean up</param>
-    private void CleanupTempDirectory(string directory)
+    private static void CleanupTempDirectory(string directory)
     {
         try
         {
