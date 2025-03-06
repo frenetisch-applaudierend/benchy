@@ -1,7 +1,8 @@
 using System.CommandLine;
+using Benchy;
 
 // Create command-line arguments
-var repoPathArg = new Argument<string>(
+var repoPathArg = new Argument<DirectoryInfo>(
     name: "repository-path",
     description: "The path to the local Git repository");
 
@@ -20,13 +21,21 @@ rootCommand.AddArgument(baselineCommitArg);
 rootCommand.AddArgument(comparisonCommitArg);
 
 // Define the command handler
-rootCommand.SetHandler((string repoPath, string baselineCommit, string comparisonCommit) =>
+rootCommand.SetHandler((repoPath, baselineCommit, comparisonCommit) =>
 {
-    Console.WriteLine($"Repository path: {repoPath}");
-    Console.WriteLine($"Baseline commit: {baselineCommit}");
-    Console.WriteLine($"Comparison commit: {comparisonCommit}");
-    
-    // TODO: Implement benchmark comparison logic
+    try
+    {
+        // Create benchmark comparer instance using the factory method
+        var comparer = BenchmarkComparer.Create(repoPath);
+        
+        // Run the benchmark comparison with the commit references
+        comparer.RunComparison(baselineCommit, comparisonCommit);
+    }
+    catch (BenchmarkComparisonException ex)
+    {
+        Console.Error.WriteLine($"Benchmark comparison error: {ex.Message}");
+        Environment.Exit(1);
+    }
 }, repoPathArg, baselineCommitArg, comparisonCommitArg);
 
 // Execute the command
