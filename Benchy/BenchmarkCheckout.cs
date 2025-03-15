@@ -4,23 +4,26 @@ public sealed class BenchmarkVersion : IDisposable
 {
     private readonly GitRepository _repository;
 
-    private BenchmarkVersion(GitRepository repository, string commitRef)
+    private BenchmarkVersion(GitRepository repository, string commitRef, DirectoryInfo directory)
     {
         _repository = repository;
         CommitRef = commitRef;
+        Directory = directory;
     }
 
     public string CommitRef { get; }
+    public DirectoryInfo Directory { get; internal set; }
 
     public static BenchmarkVersion CheckoutToTemporaryDirectory(GitRepository sourceRepository, string commitRef)
     {
-        var targetPath = Path.Combine(Path.GetTempPath(), "Benchy", Path.GetRandomFileName());
+        var directoryPath = Path.Combine(Path.GetTempPath(), "Benchy", $"{commitRef}_{Path.GetRandomFileName()}");
+        var repositoryPath = Path.Combine(directoryPath, "src");
 
         var targetRepository = GitRepository
-            .Clone(sourceRepository, targetPath)
+            .Clone(sourceRepository, repositoryPath)
             .Checkout(commitRef);
 
-        return new BenchmarkVersion(targetRepository, commitRef);
+        return new BenchmarkVersion(targetRepository, commitRef, new DirectoryInfo(directoryPath));
     }
 
     public void Delete()

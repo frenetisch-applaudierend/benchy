@@ -14,14 +14,17 @@ var comparisonCommitArg = new Argument<string>(
     name: "comparison-commit",
     description: "The comparison commit reference (hash, branch, or tag)");
 
+var noDeleteOption = new Option<bool>("--no-delete", "Do not delete the temporary directories after running the benchmarks");
+
 // Create the root command
 var rootCommand = new RootCommand("Benchmark Comparison Tool for comparing performance between commits");
 rootCommand.AddArgument(repoPathArg);
 rootCommand.AddArgument(baselineCommitArg);
 rootCommand.AddArgument(comparisonCommitArg);
+rootCommand.AddOption(noDeleteOption);
 
 // Define the command handler
-rootCommand.SetHandler(BenchmarkComparer.RunAndCompareBenchmarks, repoPathArg, baselineCommitArg, comparisonCommitArg);
+rootCommand.SetHandler(BenchmarkComparer.RunAndCompareBenchmarks, repoPathArg, baselineCommitArg, comparisonCommitArg, noDeleteOption);
 
 // Execute the command
 return await rootCommand.InvokeAsync(args);

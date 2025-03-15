@@ -2,32 +2,43 @@ namespace Benchy;
 
 public static class BenchmarkComparer
 {
-    public static void RunAndCompareBenchmarks(DirectoryInfo repositoryPath, string baselineCommitRef, string comparisonCommitRef)
+    public static void RunAndCompareBenchmarks(DirectoryInfo repositoryPath, string baselineCommitRef, string comparisonCommitRef, bool noDelete)
     {
+        var deleteAfterRun = !noDelete;
         using var repository = GitRepository.Open(repositoryPath.FullName);
         using var baselineVersion = CheckoutVersion(repository, baselineCommitRef);
         using var comparisonVersion = CheckoutVersion(repository, comparisonCommitRef);
 
-        var baselineResults = RunBenchmark(baselineVersion);
-        var comparisonResults = RunBenchmark(comparisonVersion);
+        var baselineResults = RunBenchmark(baselineVersion, deleteAfterRun);
+        var comparisonResults = RunBenchmark(comparisonVersion, deleteAfterRun);
 
         CompareBenchmarks(baselineResults, comparisonResults);
     }
 
     private static BenchmarkVersion CheckoutVersion(GitRepository repository, string commitRef)
     {
-        Console.WriteLine($"Checking out commit {commitRef}...");
-        return BenchmarkVersion.CheckoutToTemporaryDirectory(repository, commitRef);
+        var version = BenchmarkVersion.CheckoutToTemporaryDirectory(repository, commitRef);
+        Console.WriteLine($"Checked out commit {commitRef} to {version.Directory}");
+        return version;
     }
 
-    private static BenchmarkResults RunBenchmark(BenchmarkVersion version)
+    private static BenchmarkResults RunBenchmark(BenchmarkVersion version, bool deleteAfterRun)
     {
         // TODO: Run the benchmark
         Console.WriteLine("Running benchmark...");
 
         // TODO: Collect results
-        Console.WriteLine($"Deleting checked out commit {version.CommitRef}...");
-        version.Delete();
+
+        if (deleteAfterRun)
+        {
+            Console.WriteLine($"Deleting checked out commit {version.CommitRef}");
+            version.Delete();
+        }
+        else
+        {
+            Console.WriteLine($"Keeping checked out commit {version.CommitRef} at {version.Directory}");
+        }
+
 
         return new BenchmarkResults();
     }
