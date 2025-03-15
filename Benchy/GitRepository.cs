@@ -31,10 +31,12 @@ public sealed class GitRepository : IDisposable
         return new GitRepository(repo);
     }
 
-    public void Checkout(string reference)
+    public GitRepository Checkout(string reference)
     {
         var commit = LoadAndValidateCommit(reference);
         Commands.Checkout(_repository, commit);
+
+        return this;
     }
 
     public void Delete()
