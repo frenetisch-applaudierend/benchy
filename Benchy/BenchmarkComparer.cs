@@ -2,50 +2,129 @@ namespace Benchy;
 
 public static class BenchmarkComparer
 {
-    public static void RunAndCompareBenchmarks(DirectoryInfo repositoryPath, string baselineCommitRef, string comparisonCommitRef, bool noDelete)
+    public static void RunAndCompareBenchmarks(
+        DirectoryInfo repositoryPath,
+        IReadOnlyList<string> commitRefs,
+        IReadOnlyList<string> benchmarks,
+        bool noDelete,
+        bool verbose)
     {
+        Output.EnableVerbose = verbose;
+
+        if (commitRefs.Count is < 2)
+        {
+            Output.Error("At least two commit references are required to compare benchmarks");
+            Environment.Exit(1);
+            return;
+        }
+
+        if (benchmarks.Count is 0)
+        {
+            Output.Error("At least one benchmark must be specified");
+            Environment.Exit(1);
+            return;
+        }
+
         var deleteAfterRun = !noDelete;
-        using var repository = GitRepository.Open(repositoryPath.FullName);
-        using var baselineVersion = CheckoutVersion(repository, baselineCommitRef);
-        using var comparisonVersion = CheckoutVersion(repository, comparisonCommitRef);
+        IReadOnlyList<BenchmarkVersion> versions = [];
 
-        var baselineResults = RunBenchmark(baselineVersion, deleteAfterRun);
-        var comparisonResults = RunBenchmark(comparisonVersion, deleteAfterRun);
+        try
+        {
+            using var repository = GitRepository.Open(repositoryPath.FullName);
 
-        CompareBenchmarks(baselineResults, comparisonResults);
+            versions = [.. commitRefs.Select(commitRef => PrepareComparison(repository, commitRef, benchmarks))];
+            IReadOnlyList<BenchmarkResults> results = [.. versions.Select(version => RunBenchmarks(version, benchmarks))];
+
+            AnalyzeBenchmarks(results);
+        }
+        catch (Exception ex)
+        {
+            Output.Error(ex.Message);
+
+            if (verbose && ex.StackTrace is { } stackTrace)
+            {
+                Output.Error(stackTrace);
+            }
+
+            Environment.Exit(1);
+        }
+        finally
+        {
+            Cleanup(versions, deleteAfterRun);
+        }
+    }
+
+    private static BenchmarkVersion PrepareComparison(GitRepository repository, string commitRef, IEnumerable<string> benchmarks)
+    {
+        Output.Info($"Preparing commit {commitRef}");
+
+        var version = CheckoutVersion(repository, commitRef);
+
+        foreach (var benchmark in benchmarks)
+        {
+            BuildBenchmark(version, benchmark);
+        }
+
+        return version;
     }
 
     private static BenchmarkVersion CheckoutVersion(GitRepository repository, string commitRef)
     {
         var version = BenchmarkVersion.CheckoutToTemporaryDirectory(repository, commitRef);
-        Console.WriteLine($"Checked out commit {commitRef} to {version.Directory}");
+        Output.Info($"Checked out commit {commitRef} to {version.Directory}", indent: 1);
         return version;
     }
 
-    private static BenchmarkResults RunBenchmark(BenchmarkVersion version, bool deleteAfterRun)
+    private static void BuildBenchmark(BenchmarkVersion version, string benchmark)
     {
-        // TODO: Run the benchmark
-        Console.WriteLine("Running benchmark...");
+        Output.Info($"Building benchmark: {benchmark} for commit {version.CommitRef}", indent: 1);
+    }
+
+    private static BenchmarkResults RunBenchmarks(BenchmarkVersion version, IReadOnlyList<string> benchmarks)
+    {
+
+        Output.Info($"Running benchmarks for commit {version.CommitRef}");
+
+        foreach (var benchmark in benchmarks)
+        {
+            RunBenchmark(version, benchmark);
+        }
 
         // TODO: Collect results
-
-        if (deleteAfterRun)
-        {
-            Console.WriteLine($"Deleting checked out commit {version.CommitRef}");
-            version.Delete();
-        }
-        else
-        {
-            Console.WriteLine($"Keeping checked out commit {version.CommitRef} at {version.Directory}");
-        }
-
 
         return new BenchmarkResults();
     }
 
-    private static void CompareBenchmarks(BenchmarkResults baseline, BenchmarkResults comparison)
+    private static void RunBenchmark(BenchmarkVersion version, string benchmark)
     {
+        Output.Info($"Running benchmark: {benchmark} for commit {version.CommitRef}", indent: 1);
+        // TODO: Run the benchmark
+    }
+
+    private static void AnalyzeBenchmarks(IEnumerable<BenchmarkResults> results)
+    {
+        Output.Info($"Analyzing benchmark results");
         // TODO: Compare the results
+    }
+
+    private static void Cleanup(IEnumerable<BenchmarkVersion> versions, bool deleteAfterRun)
+    {
+        Output.Info("Cleaning up");
+
+        foreach (var version in versions)
+        {
+            if (deleteAfterRun)
+            {
+                Output.Verbose($"Deleting checked out commit {version.CommitRef}", indent: 1);
+                version.Delete();
+            }
+            else
+            {
+                Output.Info($"Keeping checked out commit {version.CommitRef} at {version.Directory}", indent: 1);
+            }
+
+            ((IDisposable)version).Dispose();
+        }
     }
 }
 
