@@ -21,22 +21,7 @@ rootCommand.AddArgument(baselineCommitArg);
 rootCommand.AddArgument(comparisonCommitArg);
 
 // Define the command handler
-rootCommand.SetHandler((repoPath, baselineCommit, comparisonCommit) =>
-{
-    try
-    {
-        // Create benchmark comparer instance using the factory method
-        var comparer = BenchmarkComparer.Create(repoPath);
-
-        // Run the benchmark comparison with the commit references
-        comparer.RunComparison(baselineCommit, comparisonCommit);
-    }
-    catch (BenchmarkComparisonException ex)
-    {
-        Console.Error.WriteLine($"Benchmark comparison error: {ex.Message}");
-        Environment.Exit(1);
-    }
-}, repoPathArg, baselineCommitArg, comparisonCommitArg);
+rootCommand.SetHandler(BenchmarkComparer.RunBenchmarks, repoPathArg, baselineCommitArg, comparisonCommitArg);
 
 // Execute the command
 return await rootCommand.InvokeAsync(args);
