@@ -1,0 +1,4 @@
+# pack-refs with: peeled fully-peeled sorted 
+7b38acc58384f49497fd5fe4bb4d93686f88f421 refs/heads/main
+e367902a8c2e87fef7d06396bc1142f9c81e1753 refs/tags/algs/md5
+7b38acc58384f49497fd5fe4bb4d93686f88f421 refs/tags/algs/sha256
