@@ -21,7 +21,7 @@ rootCommand.AddArgument(baselineCommitArg);
 rootCommand.AddArgument(comparisonCommitArg);
 
 // Define the command handler
-rootCommand.SetHandler(BenchmarkComparer.RunBenchmarks, repoPathArg, baselineCommitArg, comparisonCommitArg);
+rootCommand.SetHandler(BenchmarkComparer.RunAndCompareBenchmarks, repoPathArg, baselineCommitArg, comparisonCommitArg);
 
 // Execute the command
 return await rootCommand.InvokeAsync(args);

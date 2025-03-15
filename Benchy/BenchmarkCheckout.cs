@@ -9,33 +9,23 @@ public sealed class BenchmarkVersion : IDisposable
         _repository = repository;
     }
 
-    ~BenchmarkVersion()
+    public static BenchmarkVersion CheckoutToTemporaryDirectory(GitRepository sourceRepository, string commitRef)
     {
-        Dispose(false);
-    }
-
-    public static BenchmarkVersion CheckoutToTemporaryDirectory(GitRepository sourceRepository, string commitRef) {
         var targetPath = Path.Combine(Path.GetTempPath(), "src");
 
         var targetRepository = GitRepository.Clone(sourceRepository, targetPath);
         targetRepository.Checkout(commitRef);
-        
+
         return new BenchmarkVersion(targetRepository);
+    }
+
+    public void Delete()
+    {
+        _repository.Delete();
     }
 
     void IDisposable.Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    private void Dispose(bool disposing)
-    {
-        _repository.Delete();
-
-        if (disposing)
-        {
-            ((IDisposable)_repository).Dispose();
-        }
+        ((IDisposable)_repository).Dispose();
     }
 }
