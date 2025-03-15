@@ -20,7 +20,7 @@ public sealed class GitRepository : IDisposable
 
     public static GitRepository Clone(GitRepository sourceRepository, string targetPath)
     {
-        var sourcePath = sourceRepository._repository.Info.WorkingDirectory;
+        var sourcePath = sourceRepository._repository.Info.Path;
 
         Repository.Clone(sourcePath, targetPath, new CloneOptions
         {
