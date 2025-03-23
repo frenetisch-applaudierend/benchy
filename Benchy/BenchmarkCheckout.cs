@@ -8,8 +8,10 @@ public sealed class BenchmarkVersion : IDisposable
     private BenchmarkVersion(GitRepository repository, string commitRef, DirectoryInfo directory)
     {
         _repository = repository;
+
         CommitRef = commitRef;
         Directory = directory;
+        
         SourceDirectory = new DirectoryInfo(Path.Combine(directory.FullName, "src"));
         OutputDirectory = new DirectoryInfo(Path.Combine(directory.FullName, "out"));
     }

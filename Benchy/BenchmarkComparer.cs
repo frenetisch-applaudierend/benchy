@@ -33,7 +33,7 @@ public static class BenchmarkComparer
             using var repository = GitRepository.Open(repositoryPath.FullName);
 
             versions = [.. commitRefs.Select(commitRef => PrepareComparison(repository, commitRef, benchmarks, verbose))];
-            IReadOnlyList<BenchmarkResults> results = [.. versions.Select(version => RunBenchmarks(version, benchmarks, verbose))];
+            var results = versions.Select(version => RunBenchmarks(version, benchmarks, verbose));
 
             AnalyzeBenchmarks(results);
         }
@@ -82,7 +82,7 @@ public static class BenchmarkComparer
         project.Build(verbose);
     }
 
-    private static BenchmarkResults RunBenchmarks(BenchmarkVersion version, IReadOnlyList<string> benchmarks, bool verbose)
+    private static BenchmarkResult RunBenchmarks(BenchmarkVersion version, IReadOnlyList<string> benchmarks, bool verbose)
     {
 
         Output.Info($"Running benchmarks for commit {version.CommitRef}");
@@ -92,9 +92,7 @@ public static class BenchmarkComparer
             RunBenchmark(version, benchmark, verbose);
         }
 
-        // TODO: Collect results
-
-        return new BenchmarkResults();
+        return new BenchmarkResult(version, [.. BenchmarkReport.LoadReports(version.OutputDirectory)]);
     }
 
     private static void RunBenchmark(BenchmarkVersion version, string benchmark, bool verbose)
@@ -105,6 +103,8 @@ public static class BenchmarkComparer
         [
             "--keepFiles",
             "--stopOnFirstError",
+            "--memory",
+            "--threading",
             "--exporters",
             "JSON",
             "--artifacts",
@@ -112,9 +112,10 @@ public static class BenchmarkComparer
         ], verbose);
     }
 
-    private static void AnalyzeBenchmarks(IEnumerable<BenchmarkResults> results)
+    private static void AnalyzeBenchmarks(IEnumerable<BenchmarkResult> results)
     {
         Output.Info($"Analyzing benchmark results");
+        Output.Info($"TODO: Implement analysis for {results.Count()} results");
         // TODO: Compare the results
     }
 
@@ -138,5 +139,3 @@ public static class BenchmarkComparer
         }
     }
 }
-
-public sealed class BenchmarkResults;
