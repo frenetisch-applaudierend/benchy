@@ -3,6 +3,7 @@ namespace Benchy;
 public sealed class BenchmarkVersion : IDisposable
 {
     private readonly GitRepository _repository;
+    private readonly Dictionary<string, DotnetProject> _benchmarkProjects = [];
 
     private BenchmarkVersion(GitRepository repository, string commitRef, DirectoryInfo directory)
     {
@@ -14,7 +15,7 @@ public sealed class BenchmarkVersion : IDisposable
 
     public string CommitRef { get; }
     public DirectoryInfo Directory { get; }
-    public DirectoryInfo SourceDirectory {get;}
+    public DirectoryInfo SourceDirectory { get; }
 
     public static BenchmarkVersion CheckoutToTemporaryDirectory(GitRepository sourceRepository, string commitRef)
     {
@@ -33,7 +34,12 @@ public sealed class BenchmarkVersion : IDisposable
 
     public DotnetProject OpenBenchmarkProject(string projectPath)
     {
-        return DotnetProject.Open(Path.Combine(SourceDirectory.FullName, projectPath));
+        if (!_benchmarkProjects.TryGetValue(projectPath, out var project))
+        {
+            project = DotnetProject.Open(Path.Combine(SourceDirectory.FullName, projectPath));
+            _benchmarkProjects[projectPath] = project;
+        }
+        return project;
     }
 
     public void Delete()

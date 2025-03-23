@@ -30,12 +30,12 @@ public class DotnetProject
 
     public void Build()
     {
-        ExecuteCommand("build", $"\"{projectFile.FullName}\"", "Build failed");
+        ExecuteCommand("build", $"\"{projectFile.FullName}\" --configuration Release", "Build failed");
     }
 
     public void Run(IEnumerable<string> args)
     {
-        ExecuteCommand("run", $"--project \"{projectFile.FullName}\" -- {string.Join(' ', args)}", "Run failed");
+        ExecuteCommand("run", $"--project \"{projectFile.FullName}\" --no-build --configuration Release -- {string.Join(' ', args)}", "Run failed");
     }
 
     private void ExecuteCommand(string command, string arguments, string errorMessage)

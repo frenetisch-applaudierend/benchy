@@ -100,7 +100,8 @@ public static class BenchmarkComparer
     private static void RunBenchmark(BenchmarkVersion version, string benchmark)
     {
         Output.Info($"Running benchmark: {benchmark} for commit {version.CommitRef}", indent: 1);
-        // TODO: Run the benchmark
+        var project = version.OpenBenchmarkProject(benchmark);
+        project.Run([]);
     }
 
     private static void AnalyzeBenchmarks(IEnumerable<BenchmarkResults> results)
