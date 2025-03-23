@@ -28,17 +28,25 @@ public class DotnetProject
         this.projectFile = projectFile;
     }
 
-    public void Build()
+    public void Build(bool verbose)
     {
-        ExecuteCommand("build", $"\"{projectFile.FullName}\" --configuration Release", "Build failed");
+        ExecuteCommand(
+            "build",
+            $"\"{projectFile.FullName}\" --configuration Release",
+            "Build failed",
+            verbose);
     }
 
-    public void Run(IEnumerable<string> args)
+    public void Run(IEnumerable<string> args, bool verbose)
     {
-        ExecuteCommand("run", $"--project \"{projectFile.FullName}\" --no-build --configuration Release -- {string.Join(' ', args)}", "Run failed");
+        ExecuteCommand(
+            "run",
+            $"--project \"{projectFile.FullName}\" --no-build --configuration Release -- {string.Join(' ', args)}",
+            "Run failed",
+            verbose);
     }
 
-    private void ExecuteCommand(string command, string arguments, string errorMessage)
+    private void ExecuteCommand(string command, string arguments, string errorMessage, bool verbose)
     {
         var process = new Process
         {
@@ -46,10 +54,11 @@ public class DotnetProject
             {
                 FileName = "dotnet",
                 Arguments = $"{command} {arguments}",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardOutput = !verbose,
+                RedirectStandardError = !verbose,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WorkingDirectory = projectFile.DirectoryName,
             }
         };
 
@@ -58,7 +67,7 @@ public class DotnetProject
 
         if (process.ExitCode != 0)
         {
-            throw new Exception($"{errorMessage}: {process.StandardError.ReadToEnd()}");
+            throw new Exception(errorMessage);
         }
     }
 }

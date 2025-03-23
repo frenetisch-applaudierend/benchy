@@ -11,11 +11,13 @@ public sealed class BenchmarkVersion : IDisposable
         CommitRef = commitRef;
         Directory = directory;
         SourceDirectory = new DirectoryInfo(Path.Combine(directory.FullName, "src"));
+        ResultsDirectory = new DirectoryInfo(Path.Combine(directory.FullName, "results"));
     }
 
     public string CommitRef { get; }
     public DirectoryInfo Directory { get; }
     public DirectoryInfo SourceDirectory { get; }
+    public DirectoryInfo ResultsDirectory { get; }
 
     public static BenchmarkVersion CheckoutToTemporaryDirectory(GitRepository sourceRepository, string commitRef)
     {

@@ -32,8 +32,8 @@ public static class BenchmarkComparer
         {
             using var repository = GitRepository.Open(repositoryPath.FullName);
 
-            versions = [.. commitRefs.Select(commitRef => PrepareComparison(repository, commitRef, benchmarks))];
-            IReadOnlyList<BenchmarkResults> results = [.. versions.Select(version => RunBenchmarks(version, benchmarks))];
+            versions = [.. commitRefs.Select(commitRef => PrepareComparison(repository, commitRef, benchmarks, verbose))];
+            IReadOnlyList<BenchmarkResults> results = [.. versions.Select(version => RunBenchmarks(version, benchmarks, verbose))];
 
             AnalyzeBenchmarks(results);
         }
@@ -54,7 +54,7 @@ public static class BenchmarkComparer
         }
     }
 
-    private static BenchmarkVersion PrepareComparison(GitRepository repository, string commitRef, IEnumerable<string> benchmarks)
+    private static BenchmarkVersion PrepareComparison(GitRepository repository, string commitRef, IEnumerable<string> benchmarks, bool verbose)
     {
         Output.Info($"Preparing commit {commitRef}");
 
@@ -62,7 +62,7 @@ public static class BenchmarkComparer
 
         foreach (var benchmark in benchmarks)
         {
-            BuildBenchmark(version, benchmark);
+            BuildBenchmark(version, benchmark, verbose);
         }
 
         return version;
@@ -75,21 +75,21 @@ public static class BenchmarkComparer
         return version;
     }
 
-    private static void BuildBenchmark(BenchmarkVersion version, string benchmark)
+    private static void BuildBenchmark(BenchmarkVersion version, string benchmark, bool verbose)
     {
         Output.Info($"Building benchmark: {benchmark} for commit {version.CommitRef}", indent: 1);
         var project = version.OpenBenchmarkProject(benchmark);
-        project.Build();
+        project.Build(verbose);
     }
 
-    private static BenchmarkResults RunBenchmarks(BenchmarkVersion version, IReadOnlyList<string> benchmarks)
+    private static BenchmarkResults RunBenchmarks(BenchmarkVersion version, IReadOnlyList<string> benchmarks, bool verbose)
     {
 
         Output.Info($"Running benchmarks for commit {version.CommitRef}");
 
         foreach (var benchmark in benchmarks)
         {
-            RunBenchmark(version, benchmark);
+            RunBenchmark(version, benchmark, verbose);
         }
 
         // TODO: Collect results
@@ -97,11 +97,19 @@ public static class BenchmarkComparer
         return new BenchmarkResults();
     }
 
-    private static void RunBenchmark(BenchmarkVersion version, string benchmark)
+    private static void RunBenchmark(BenchmarkVersion version, string benchmark, bool verbose)
     {
         Output.Info($"Running benchmark: {benchmark} for commit {version.CommitRef}", indent: 1);
         var project = version.OpenBenchmarkProject(benchmark);
-        project.Run([]);
+        project.Run(
+        [
+            "--keepFiles",
+            "--stopOnFirstError",
+            "--exporters",
+            "JSON",
+            "--artifacts",
+            version.ResultsDirectory.FullName
+        ], verbose);
     }
 
     private static void AnalyzeBenchmarks(IEnumerable<BenchmarkResults> results)
