@@ -108,7 +108,7 @@ public static class BenchmarkComparer
             "--exporters",
             "JSON",
             "--artifacts",
-            version.ResultsDirectory.FullName
+            version.OutputDirectory.FullName
         ], verbose);
     }
 
