@@ -9,10 +9,12 @@ public sealed class BenchmarkVersion : IDisposable
         _repository = repository;
         CommitRef = commitRef;
         Directory = directory;
+        SourceDirectory = new DirectoryInfo(Path.Combine(directory.FullName, "src"));
     }
 
     public string CommitRef { get; }
-    public DirectoryInfo Directory { get; internal set; }
+    public DirectoryInfo Directory { get; }
+    public DirectoryInfo SourceDirectory {get;}
 
     public static BenchmarkVersion CheckoutToTemporaryDirectory(GitRepository sourceRepository, string commitRef)
     {
@@ -28,6 +30,11 @@ public sealed class BenchmarkVersion : IDisposable
     }
 
     private static string Sanitize(string fileNamePart) => string.Join("_", fileNamePart.Split(Path.GetInvalidFileNameChars()));
+
+    public DotnetProject OpenBenchmarkProject(string projectPath)
+    {
+        return DotnetProject.Open(Path.Combine(SourceDirectory.FullName, projectPath));
+    }
 
     public void Delete()
     {

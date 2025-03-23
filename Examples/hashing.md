@@ -11,5 +11,5 @@ Git repository with 3 commits.
 Example usage:
 
 ```bash
-benchy Examples/hashing.git algs/md5 algs/sha256
+benchy Examples/hashing.git algs/md5 algs/sha256 -b ExmapleBenchmark
 ```

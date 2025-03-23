@@ -78,6 +78,8 @@ public static class BenchmarkComparer
     private static void BuildBenchmark(BenchmarkVersion version, string benchmark)
     {
         Output.Info($"Building benchmark: {benchmark} for commit {version.CommitRef}", indent: 1);
+        var project = version.OpenBenchmarkProject(benchmark);
+        project.Build();
     }
 
     private static BenchmarkResults RunBenchmarks(BenchmarkVersion version, IReadOnlyList<string> benchmarks)
