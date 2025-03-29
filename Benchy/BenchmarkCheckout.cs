@@ -12,8 +12,8 @@ public sealed class BenchmarkVersion : IDisposable
         CommitRef = commitRef;
         Directory = directory;
         
-        SourceDirectory = new DirectoryInfo(Path.Combine(directory.FullName, "src"));
-        OutputDirectory = new DirectoryInfo(Path.Combine(directory.FullName, "out"));
+        SourceDirectory = directory.SubDirectory("src");
+        OutputDirectory = directory.SubDirectory("out");
     }
 
     public string CommitRef { get; }
@@ -40,7 +40,7 @@ public sealed class BenchmarkVersion : IDisposable
     {
         if (!_benchmarkProjects.TryGetValue(projectPath, out var project))
         {
-            project = DotnetProject.Open(Path.Combine(SourceDirectory.FullName, projectPath));
+            project = DotnetProject.Open(SourceDirectory.File(projectPath));
             _benchmarkProjects[projectPath] = project;
         }
         return project;

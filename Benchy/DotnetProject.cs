@@ -6,10 +6,8 @@ public class DotnetProject
 {
     private readonly FileInfo projectFile;
 
-    public static DotnetProject Open(string path)
+    public static DotnetProject Open(FileInfo projectFile)
     {
-        var projectFile = new FileInfo(path);
-
         if (!projectFile.Extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
         {
             projectFile = new FileInfo(projectFile.FullName + ".csproj");

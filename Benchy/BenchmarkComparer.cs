@@ -33,7 +33,7 @@ public static class BenchmarkComparer
             using var repository = GitRepository.Open(repositoryPath.FullName);
 
             versions = [.. commitRefs.Select(commitRef => PrepareComparison(repository, commitRef, benchmarks, verbose))];
-            var results = versions.Select(version => RunBenchmarks(version, benchmarks, verbose));
+            var results = versions.Select(version => RunBenchmarks(version, benchmarks, verbose)).ToList();
 
             AnalyzeBenchmarks(results);
         }
@@ -77,7 +77,7 @@ public static class BenchmarkComparer
 
     private static void BuildBenchmark(BenchmarkVersion version, string benchmark, bool verbose)
     {
-        Output.Info($"Building benchmark: {benchmark} for commit {version.CommitRef}", indent: 1);
+        Output.Info($"Building benchmark project: {benchmark} for commit {version.CommitRef}", indent: 1);
         var project = version.OpenBenchmarkProject(benchmark);
         project.Build(verbose);
     }
@@ -92,7 +92,7 @@ public static class BenchmarkComparer
             RunBenchmark(version, benchmark, verbose);
         }
 
-        return new BenchmarkResult(version, [.. BenchmarkReport.LoadReports(version.OutputDirectory)]);
+        return new BenchmarkResult(version, [.. BenchmarkReport.LoadReports(version.OutputDirectory.SubDirectory("results"))]);
     }
 
     private static void RunBenchmark(BenchmarkVersion version, string benchmark, bool verbose)
@@ -112,11 +112,22 @@ public static class BenchmarkComparer
         ], verbose);
     }
 
-    private static void AnalyzeBenchmarks(IEnumerable<BenchmarkResult> results)
+    private static void AnalyzeBenchmarks(IReadOnlyList<BenchmarkResult> results)
     {
         Output.Info($"Analyzing benchmark results");
-        Output.Info($"TODO: Implement analysis for {results.Count()} results");
-        // TODO: Compare the results
+
+        foreach (var result in results)
+        {
+            Output.Info($"Analyzing benchmark for commit {result.Version.CommitRef}", indent: 1);
+            foreach (var report in result.Reports)
+            {
+                Output.Info($"Report: {report.Title}", indent: 2);
+                foreach (var benchmark in report.Benchmarks)
+                {
+                    Output.Info($"Benchmark: {benchmark.FullName} - Mean: {benchmark.Statistics.Mean}", indent: 3);
+                }
+            }
+        }
     }
 
     private static void Cleanup(IEnumerable<BenchmarkVersion> versions, bool deleteAfterRun)
