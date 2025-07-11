@@ -1,11 +1,21 @@
 {
 	"name": "C# (.NET)",
-	"image": "mcr.microsoft.com/devcontainers/dotnet:1-9.0-bookworm",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:1-9.0",
+	"features": {
+		"ghcr.io/devcontainers/features/dotnet:2": {},
+		"ghcr.io/devcontainers/features/node:1": {}
+	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-dotnettools.csdevkit"
-			]
+				"ms-dotnettools.csdevkit",
+				"csharpier.csharpier-vscode",
+				"Anthropic.claude-code"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "zsh"
+			}
 		}
-	}
+	},
+	"postCreateCommand": "sh .devcontainer/install-claude.sh"
 }
