@@ -8,7 +8,10 @@ rootCommand.AddOption(Arguments.Interactive.RepositoryPathOption);
 rootCommand.AddOption(Arguments.Interactive.NoDeleteOption);
 rootCommand.AddArgument(Arguments.Interactive.CommitsArgument);
 
-var ciCommand = new Command("ci", "Compare benchmarks between pre-checked-out directories in a CI environment");
+var ciCommand = new Command("ci", "Compare benchmarks between pre-checked-out directories in a CI environment")
+{
+    IsHidden = true
+};
 ciCommand.AddOption(Arguments.Shared.BenchmarkOption);
 ciCommand.AddOption(Arguments.Shared.VerboseOption);
 ciCommand.AddArgument(Arguments.Ci.DirectoriesArgument);

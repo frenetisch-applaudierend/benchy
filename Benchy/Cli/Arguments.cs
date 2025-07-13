@@ -28,14 +28,44 @@ public static class Arguments
         
         public static readonly Argument<string[]> CommitsArgument = new(
             name: "commit-refs",
-            description: "The commit references (hash, branch, or tag) to compare against each other");
+            description: "The commit references (hash, branch, or tag) to compare against each other")
+        {
+            Arity = ArgumentArity.OneOrMore
+        };
+
+        static Interactive()
+        {
+            CommitsArgument.AddValidator(result =>
+            {
+                var commits = result.GetValueForArgument(CommitsArgument);
+                if (commits.Length < 2)
+                {
+                    result.ErrorMessage = "At least 2 commit references are required.";
+                }
+            });
+        }
     }
 
     public static class Ci
     {
         public static readonly Argument<DirectoryInfo[]> DirectoriesArgument = new(
             name: "directories",
-            description: "The directories containing the code versions to compare");
+            description: "The directories containing the code versions to compare")
+        {
+            Arity = ArgumentArity.OneOrMore
+        };
+
+        static Ci()
+        {
+            DirectoriesArgument.AddValidator(result =>
+            {
+                var directories = result.GetValueForArgument(DirectoriesArgument);
+                if (directories.Length < 2)
+                {
+                    result.ErrorMessage = "At least 2 directories are required.";
+                }
+            });
+        }
     }
     
 }
