@@ -1,4 +1,4 @@
-namespace Benchy;
+namespace Benchy.Infrastructure;
 
 public static class Output
 {

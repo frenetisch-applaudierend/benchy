@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Benchy;
+namespace Benchy.Infrastructure;
 
 public class DotnetProject
 {

@@ -1,4 +1,4 @@
-namespace Benchy;
+namespace Benchy.Core;
 
 /// <summary>
 /// Custom exception class for benchmark comparison errors

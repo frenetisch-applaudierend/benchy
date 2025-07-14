@@ -1,6 +1,6 @@
 using LibGit2Sharp;
 
-namespace Benchy;
+namespace Benchy.Infrastructure;
 
 public sealed class GitRepository : IDisposable
 {

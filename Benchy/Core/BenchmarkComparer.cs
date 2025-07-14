@@ -1,4 +1,6 @@
-namespace Benchy;
+using Benchy.Infrastructure;
+
+namespace Benchy.Core;
 
 public static class BenchmarkComparer
 {

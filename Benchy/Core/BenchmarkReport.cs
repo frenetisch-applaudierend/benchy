@@ -1,6 +1,7 @@
 using System.Text.Json;
+using Benchy.Infrastructure;
 
-namespace Benchy;
+namespace Benchy.Core;
 
 public sealed record BenchmarkReport(string Title, IReadOnlyList<BenchmarkReport.Benchmark> Benchmarks)
 {

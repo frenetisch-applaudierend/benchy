@@ -1,6 +1,6 @@
 using System;
 
-namespace Benchy;
+namespace Benchy.Infrastructure;
 
 public static class DirectoryInfoExtensions
 {
