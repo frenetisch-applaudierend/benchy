@@ -26,46 +26,36 @@ public static class Arguments
             name: "--no-delete",
             description: "Do not delete the temporary directories after running the benchmarks");
         
-        public static readonly Argument<string[]> CommitsArgument = new(
+        public static readonly Argument<string[]> CommitsArgument = new Argument<string[]>(
             name: "commit-refs",
             description: "The commit references (hash, branch, or tag) to compare against each other")
-        {
-            Arity = ArgumentArity.OneOrMore
-        };
-
-        static Interactive()
-        {
-            CommitsArgument.AddValidator(result =>
-            {
-                var commits = result.GetValueForArgument(CommitsArgument);
-                if (commits.Length < 2)
-                {
-                    result.ErrorMessage = "At least 2 commit references are required.";
-                }
-            });
-        }
+            .WithMultipleItems(minCount: 2);
     }
 
     public static class Ci
     {
-        public static readonly Argument<DirectoryInfo[]> DirectoriesArgument = new(
+        public static readonly Argument<DirectoryInfo[]> DirectoriesArgument = new Argument<DirectoryInfo[]>(
             name: "directories",
             description: "The directories containing the code versions to compare")
-        {
-            Arity = ArgumentArity.OneOrMore
-        };
-
-        static Ci()
-        {
-            DirectoriesArgument.AddValidator(result =>
-            {
-                var directories = result.GetValueForArgument(DirectoriesArgument);
-                if (directories.Length < 2)
-                {
-                    result.ErrorMessage = "At least 2 directories are required.";
-                }
-            });
-        }
+            .WithMultipleItems(minCount: 2);
     }
     
+}
+
+file static class ArgumentsExtensions
+{
+    public static Argument<T[]> WithMultipleItems<T>(this Argument<T[]> argument, int minCount)
+    {
+        argument.Arity = ArgumentArity.OneOrMore;
+        argument.AddValidator(result =>
+            {
+                var commits = result.GetValueForArgument(argument);
+                if (commits.Length < minCount)
+                {
+                    result.ErrorMessage = $"At least {minCount} {argument.Name} are required.";
+                }
+            });
+
+        return argument;
+    }
 }
