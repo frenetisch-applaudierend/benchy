@@ -6,7 +6,8 @@ public static class Output
 
     public static void Info(string message) => Console.Out.WriteLine(message);
 
-    public static void Info(string message, int indent) => Console.Out.WriteLine(new string(' ', indent) + message);
+    public static void Info(string message, int indent) =>
+        Console.Out.WriteLine(new string(' ', indent) + message);
 
     public static void Verbose(string message)
     {

@@ -1,5 +1,3 @@
 namespace Benchy.Core;
 
-public class BenchmarkComparisonResult
-{
-}
+public class BenchmarkComparisonResult { }

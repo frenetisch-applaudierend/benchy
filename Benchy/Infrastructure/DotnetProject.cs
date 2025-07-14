@@ -32,7 +32,8 @@ public class DotnetProject
             "build",
             $"\"{projectFile.FullName}\" --configuration Release",
             "Build failed",
-            verbose);
+            verbose
+        );
     }
 
     public void Run(IEnumerable<string> args, bool verbose)
@@ -41,7 +42,8 @@ public class DotnetProject
             "run",
             $"--project \"{projectFile.FullName}\" --no-build --configuration Release -- {string.Join(' ', args)}",
             "Run failed",
-            verbose);
+            verbose
+        );
     }
 
     private void ExecuteCommand(string command, string arguments, string errorMessage, bool verbose)
@@ -57,7 +59,7 @@ public class DotnetProject
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 WorkingDirectory = projectFile.DirectoryName,
-            }
+            },
         };
 
         process.Start();

@@ -10,9 +10,7 @@ public class BenchmarkComparisonException : Exception
     /// </summary>
     /// <param name="message">The error message</param>
     public BenchmarkComparisonException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
     /// <summary>
     /// Creates a new instance of BenchmarkComparisonException with an inner exception
@@ -20,7 +18,5 @@ public class BenchmarkComparisonException : Exception
     /// <param name="message">The error message</param>
     /// <param name="innerException">The inner exception</param>
     public BenchmarkComparisonException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 }

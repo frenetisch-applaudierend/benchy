@@ -2,7 +2,12 @@ namespace Benchy.Cli;
 
 public static class CiHandler
 {
-    public static void Handle(bool verbose, string[] benchmarks, DirectoryInfo baselineDirectory, DirectoryInfo targetDirectory)
+    public static void Handle(
+        bool verbose,
+        string[] benchmarks,
+        DirectoryInfo baselineDirectory,
+        DirectoryInfo targetDirectory
+    )
     {
         Console.WriteLine("=== CI MODE ===");
         Console.WriteLine($"Baseline directory: {baselineDirectory.FullName}");

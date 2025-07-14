@@ -3,16 +3,21 @@ using Benchy.Infrastructure;
 
 namespace Benchy.Core;
 
-public sealed record BenchmarkReport(string Title, IReadOnlyList<BenchmarkReport.Benchmark> Benchmarks)
+public sealed record BenchmarkReport(
+    string Title,
+    IReadOnlyList<BenchmarkReport.Benchmark> Benchmarks
+)
 {
-
     public sealed record Benchmark(string FullName, Statistics Statistics);
 
     public sealed record Statistics(double Mean);
 
     public static IEnumerable<BenchmarkReport> LoadReports(DirectoryInfo directory)
     {
-        var reportFiles = directory.GetFiles("*report-full-compressed.json", SearchOption.TopDirectoryOnly);
+        var reportFiles = directory.GetFiles(
+            "*report-full-compressed.json",
+            SearchOption.TopDirectoryOnly
+        );
         return reportFiles.Select(LoadReport);
     }
 

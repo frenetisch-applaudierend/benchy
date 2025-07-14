@@ -4,7 +4,6 @@ namespace Benchy.Infrastructure;
 
 public sealed class GitRepository : IDisposable
 {
-
     private readonly Repository _repository;
 
     private GitRepository(Repository repository)
@@ -22,10 +21,7 @@ public sealed class GitRepository : IDisposable
     {
         var sourcePath = sourceRepository._repository.Info.Path;
 
-        Repository.Clone(sourcePath, targetPath, new CloneOptions
-        {
-            Checkout = false
-        });
+        Repository.Clone(sourcePath, targetPath, new CloneOptions { Checkout = false });
 
         var repo = new Repository(targetPath);
         return new GitRepository(repo);
@@ -46,7 +42,8 @@ public sealed class GitRepository : IDisposable
 
     private Commit LoadAndValidateCommit(string reference)
     {
-        var commit = _repository.Lookup<Commit>(reference)
+        var commit =
+            _repository.Lookup<Commit>(reference)
             ?? throw new ArgumentException($"Commit {reference} does not exist in the repository.");
         return commit;
     }

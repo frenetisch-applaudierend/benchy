@@ -13,7 +13,7 @@ public sealed class BenchmarkVersion : IDisposable
 
         CommitRef = commitRef;
         Directory = directory;
-        
+
         SourceDirectory = directory.SubDirectory("src");
         OutputDirectory = directory.SubDirectory("out");
     }
@@ -23,7 +23,10 @@ public sealed class BenchmarkVersion : IDisposable
     public DirectoryInfo SourceDirectory { get; }
     public DirectoryInfo OutputDirectory { get; }
 
-    public static BenchmarkVersion CheckoutToTemporaryDirectory(GitRepository sourceRepository, string commitRef)
+    public static BenchmarkVersion CheckoutToTemporaryDirectory(
+        GitRepository sourceRepository,
+        string commitRef
+    )
     {
         var versionDirectoryName = $"{Sanitize(commitRef)}_{Path.GetRandomFileName()}";
         var directoryPath = Path.Combine(Path.GetTempPath(), "Benchy", versionDirectoryName);
@@ -36,7 +39,8 @@ public sealed class BenchmarkVersion : IDisposable
         return new BenchmarkVersion(targetRepository, commitRef, new DirectoryInfo(directoryPath));
     }
 
-    private static string Sanitize(string fileNamePart) => string.Join("_", fileNamePart.Split(Path.GetInvalidFileNameChars()));
+    private static string Sanitize(string fileNamePart) =>
+        string.Join("_", fileNamePart.Split(Path.GetInvalidFileNameChars()));
 
     public DotnetProject OpenBenchmarkProject(string projectPath)
     {
