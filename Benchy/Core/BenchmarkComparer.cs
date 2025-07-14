@@ -4,6 +4,11 @@ namespace Benchy.Core;
 
 public static class BenchmarkComparer
 {
+    public static BenchmarkComparisonResult CompareBenchmarks(BenchmarkRun baseline, BenchmarkRun target)
+    {
+        throw new NotImplementedException("Benchmark comparison logic is not implemented yet.");
+    }
+
     public static void RunAndCompareBenchmarks(
         DirectoryInfo repositoryPath,
         IReadOnlyList<string> commitRefs,

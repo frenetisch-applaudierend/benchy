@@ -2,25 +2,24 @@ using System.CommandLine;
 using Benchy.Cli;
 
 var rootCommand = new RootCommand("Benchmark Comparison Tool for comparing performance between commits");
-rootCommand.AddOption(Arguments.Shared.VerboseOption);
-rootCommand.AddOption(Arguments.Shared.BenchmarkOption);
-rootCommand.AddOption(Arguments.Interactive.RepositoryPathOption);
-rootCommand.AddOption(Arguments.Interactive.NoDeleteOption);
-rootCommand.AddArgument(Arguments.Interactive.CommitsArgument);
+rootCommand.AddGlobalOption(Arguments.Shared.VerboseOption);
+rootCommand.AddGlobalOption(Arguments.Shared.BenchmarkOption);
 
-var ciCommand = new Command("ci", "Compare benchmarks between pre-checked-out directories in a CI environment")
-{
-    IsHidden = true
-};
-ciCommand.AddOption(Arguments.Shared.BenchmarkOption);
-ciCommand.AddOption(Arguments.Shared.VerboseOption);
-ciCommand.AddArgument(Arguments.Ci.DirectoriesArgument);
+var compareCommand = new Command("compare", "Compare benchmarks between two commits in a repository");
+compareCommand.AddOption(Arguments.Interactive.RepositoryPathOption);
+compareCommand.AddOption(Arguments.Interactive.NoDeleteOption);
+compareCommand.AddArgument(Arguments.Interactive.BaselineArgument);
+compareCommand.AddArgument(Arguments.Interactive.TargetArgument);
+rootCommand.AddCommand(compareCommand);
 
+var ciCommand = new Command("ci", "Compare benchmarks between pre-checked-out directories in a CI environment");
+ciCommand.AddArgument(Arguments.Ci.BaselineDirectoryArgument);
+ciCommand.AddArgument(Arguments.Ci.TargetDirectoryArgument);
 rootCommand.AddCommand(ciCommand);
 
 // Define command handlers
-rootCommand.SetHandler(InteractiveHandler.Handle, Arguments.Shared.VerboseOption, Arguments.Shared.BenchmarkOption, Arguments.Interactive.RepositoryPathOption, Arguments.Interactive.NoDeleteOption, Arguments.Interactive.CommitsArgument);
-ciCommand.SetHandler(CiHandler.Handle, Arguments.Shared.VerboseOption, Arguments.Shared.BenchmarkOption, Arguments.Ci.DirectoriesArgument);
+compareCommand.SetHandler(InteractiveHandler.Handle, Arguments.Shared.VerboseOption, Arguments.Shared.BenchmarkOption, Arguments.Interactive.RepositoryPathOption, Arguments.Interactive.NoDeleteOption, Arguments.Interactive.BaselineArgument, Arguments.Interactive.TargetArgument);
+ciCommand.SetHandler(CiHandler.Handle, Arguments.Shared.VerboseOption, Arguments.Shared.BenchmarkOption, Arguments.Ci.BaselineDirectoryArgument, Arguments.Ci.TargetDirectoryArgument);
 
 // Execute the command
 return await rootCommand.InvokeAsync(args);

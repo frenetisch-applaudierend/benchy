@@ -25,19 +25,28 @@ public static class Arguments
         public static readonly Option<bool> NoDeleteOption = new(
             name: "--no-delete",
             description: "Do not delete the temporary directories after running the benchmarks");
-        
-        public static readonly Argument<string[]> CommitsArgument = new Argument<string[]>(
-            name: "commit-refs",
-            description: "The commit references (hash, branch, or tag) to compare against each other")
-            .WithMultipleItems(minCount: 2);
+
+        public static readonly Argument<string> BaselineArgument = new(
+            name: "baseline",
+            description: "The commit reference (hash, branch, or tag) to the baseline version");
+
+        public static readonly Argument<string?> TargetArgument = new(
+            name: "target",
+            description: "The commit reference (hash, branch, or tag) to the target version (defaults to currently checked out version)")
+        {
+            Arity = ArgumentArity.ZeroOrOne
+        };
     }
 
     public static class Ci
     {
-        public static readonly Argument<DirectoryInfo[]> DirectoriesArgument = new Argument<DirectoryInfo[]>(
-            name: "directories",
-            description: "The directories containing the code versions to compare")
-            .WithMultipleItems(minCount: 2);
+        public static readonly Argument<DirectoryInfo> BaselineDirectoryArgument = new(
+            name: "baseline",
+            description: "The directory containing the baseline version to compare");
+
+        public static readonly Argument<DirectoryInfo> TargetDirectoryArgument = new(
+            name: "target",
+            description: "The directory containing the target version to compare");
     }
     
 }
