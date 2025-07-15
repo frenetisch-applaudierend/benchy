@@ -6,7 +6,8 @@ public static class BenchmarkComparer
 {
     public static BenchmarkComparisonResult CompareBenchmarks(
         BenchmarkRun baseline,
-        BenchmarkRun target
+        BenchmarkRun target,
+        bool verbose
     )
     {
         throw new NotImplementedException("Benchmark comparison logic is not implemented yet.");

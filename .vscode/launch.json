@@ -5,12 +5,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Benchy with hashing.git",
+            "name": "[Debug] compare with hashing.git",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "dotnet: build",
-            "program": "${workspaceFolder}/Benchy/bin/Debug/net9.0/Benchy.dll",
+            "program": "${workspaceFolder}/Benchy/bin/Debug/net9.0/linux-x64/Benchy.dll",
             "args": ["Examples/hashing.git", "algs/md5", "algs/sha256"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "[Debug] ci hashing.git",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "dotnet: build",
+            "program": "${workspaceFolder}/Benchy/bin/Debug/net9.0/linux-x64/Benchy.dll",
+            "args": ["ci", "./temp/hashing-md5", "./temp/hashing-sha256", "-b", "ExampleBenchmark"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
