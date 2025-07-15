@@ -10,7 +10,8 @@
 			"extensions": [
 				"ms-dotnettools.csdevkit",
 				"csharpier.csharpier-vscode",
-				"Anthropic.claude-code"
+				"Anthropic.claude-code",
+				"yzhang.markdown-all-in-one"
 			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh"

@@ -17,4 +17,28 @@ public sealed record BenchmarkProject
 
         return new BenchmarkProject(DotnetProject.Open(projectFile));
     }
+
+    public void Build(bool verbose)
+    {
+        Output.Info($"Building benchmark project: {project.Name}", indent: 1);
+        project.Build(verbose);
+    }
+
+    public void Run(DirectoryInfo outputDirectory, bool verbose)
+    {
+        Output.Info($"Running benchmark project: {project.Name}", indent: 1);
+        project.Run(
+            [
+                "--keepFiles",
+                "--stopOnFirstError",
+                "--memory",
+                "--threading",
+                "--exporters",
+                "JSON",
+                "--artifacts",
+                outputDirectory.FullName,
+            ],
+            verbose
+        );
+    }
 }

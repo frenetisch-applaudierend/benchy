@@ -20,16 +20,18 @@ public static class CiHandler
 
         var baselineTemporaryDirectory = Directories.CreateTemporaryDirectory("ci-baseline");
         var baselineRun = BenchmarkRun.FromSourcePath(
-            baselineDirectory,
-            baselineTemporaryDirectory,
-            benchmarks
+            sourceDirectory: baselineDirectory,
+            temporaryDirectory: baselineTemporaryDirectory,
+            name: "baseline",
+            benchmarks: benchmarks
         );
 
         var targetTemporaryDirectory = Directories.CreateTemporaryDirectory("ci-target");
         var targetRun = BenchmarkRun.FromSourcePath(
-            targetDirectory,
-            targetTemporaryDirectory,
-            benchmarks
+            sourceDirectory: targetDirectory,
+            temporaryDirectory: targetTemporaryDirectory,
+            name: "target",
+            benchmarks: benchmarks
         );
 
         var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, verbose);

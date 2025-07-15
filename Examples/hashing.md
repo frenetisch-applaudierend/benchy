@@ -2,11 +2,11 @@
 
 Git repository with 3 commits.
 
-| Commit                                                                    | Message               |
-| ------------------------------------------------------------------------- | --------------------- |
-| 62af84848aab2be1add0487cb1492c7285abff46                                  | Add Empty Project     |
-| e367902a8c2e87fef7d06396bc1142f9c81e1753 (tag: algs/md5)                  | Add Benchmark for MD5 |
-| 7b38acc58384f49497fd5fe4bb4d93686f88f421 (tag: algs/sha256, branch: main) | Update hashing        |
+| Commit                                                                    | Message                        |
+| ------------------------------------------------------------------------- | ------------------------------ |
+| edf4650bb217844db9d264a420a2a92a63a91173                                  | Add Empty Project              |
+| 1ca2092ef75fe1f54f8308842c58fa856268a789 (tag: algs/md5)                  | Add Benchmark for MD5          |
+| 4545cc41c540f3f5274d6b2fb15a510c9a2548f0 (tag: algs/sha256, branch: main) | Update Benchmark to use SHA256 |
 
 Example usage:
 
