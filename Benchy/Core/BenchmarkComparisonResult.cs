@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace Benchy.Core;
 
 public sealed record BenchmarkComparisonResult(IReadOnlyList<BenchmarkComparison> Comparisons)
@@ -207,4 +209,49 @@ public sealed record BenchmarkComparison(
 }
 
 public sealed record ComparisonValue<T>(T? Baseline, T? Target)
-    where T : struct, IComparable<T>;
+    where T : struct, IComparable<T>, INumber<T>
+{
+    public T? Delta => Baseline.HasValue && Target.HasValue ? Target.Value - Baseline.Value : null;
+
+    public double? PercentageChange
+    {
+        get
+        {
+            if (!Baseline.HasValue || !Target.HasValue || Baseline.Value.Equals(T.Zero))
+                return null;
+
+            var baselineDouble = Convert.ToDouble(Baseline.Value);
+            var deltaDouble = Convert.ToDouble(Delta!.Value);
+            return deltaDouble / baselineDouble * 100.0;
+        }
+    }
+
+    public bool IsImprovement(bool lowerIsBetter = true) =>
+        Delta.HasValue
+        && (lowerIsBetter ? Delta.Value.CompareTo(T.Zero) < 0 : Delta.Value.CompareTo(T.Zero) > 0);
+
+    public bool IsRegression(bool lowerIsBetter = true) =>
+        Delta.HasValue
+        && (lowerIsBetter ? Delta.Value.CompareTo(T.Zero) > 0 : Delta.Value.CompareTo(T.Zero) < 0);
+
+    public bool HasSignificantChange(double thresholdPercent = 5.0) =>
+        PercentageChange.HasValue && Math.Abs(PercentageChange.Value) >= thresholdPercent;
+
+    public string GetChangeSymbol(bool lowerIsBetter = true)
+    {
+        if (!Delta.HasValue)
+            return "?";
+        if (Delta.Value.Equals(T.Zero))
+            return "=";
+        return IsImprovement(lowerIsBetter) ? "✓" : "✗";
+    }
+
+    public ConsoleColor GetChangeColor(bool lowerIsBetter = true)
+    {
+        if (!Delta.HasValue)
+            return ConsoleColor.Gray;
+        if (Delta.Value.Equals(T.Zero))
+            return ConsoleColor.White;
+        return IsImprovement(lowerIsBetter) ? ConsoleColor.Green : ConsoleColor.Red;
+    }
+}
