@@ -49,7 +49,7 @@ public static class InteractiveHandler
 
         var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, verbose);
 
-        _ = results; // TODO
+        Console.WriteLine(results.ToString());
 
         if (noDelete)
         {

@@ -18,9 +18,12 @@ public static class BenchmarkComparer
         {
             PrepareRuns(runs, verbose);
             var results = RunBenchmarks(runs, verbose);
-            AnalyzeBenchmarks(results);
+            var comparisonResult = BenchmarkComparisonResult.FromBenchmarkRunResults(
+                results[0], // baseline
+                results[1] // target
+            );
 
-            return new BenchmarkComparisonResult();
+            return comparisonResult;
         }
         catch (Exception ex)
         {
@@ -51,26 +54,5 @@ public static class BenchmarkComparer
         }
 
         return results;
-    }
-
-    private static void AnalyzeBenchmarks(IReadOnlyList<BenchmarkRunResult> results)
-    {
-        Output.Info($"Analyzing benchmark results");
-
-        foreach (var result in results)
-        {
-            Output.Info($"Analyzing benchmark for run {result.Run.Name}", indent: 1);
-            foreach (var report in result.Reports)
-            {
-                Output.Info($"Report: {report.Title}", indent: 2);
-                foreach (var benchmark in report.Benchmarks)
-                {
-                    Output.Info(
-                        $"Benchmark: {benchmark.FullName} - Mean: {benchmark.Statistics.Mean}",
-                        indent: 3
-                    );
-                }
-            }
-        }
     }
 }
