@@ -22,7 +22,7 @@ public sealed class TemporaryDirectory : IDisposable
 
     public string FullName => directory.FullName;
 
-    private TemporaryDirectory(DirectoryInfo directory, bool keepAfterDisposal = false)
+    private TemporaryDirectory(DirectoryInfo directory, bool keepAfterDisposal)
     {
         this.directory = directory;
         this.keepAfterDisposal = keepAfterDisposal;
@@ -56,7 +56,7 @@ public sealed class TemporaryDirectory : IDisposable
             $"{now:HHmmss}_{Path.GetRandomFileName()}"
         );
         Directory.CreateDirectory(tempPath);
-        return new TemporaryDirectory(new DirectoryInfo(tempPath));
+        return new TemporaryDirectory(new DirectoryInfo(tempPath), keepAfterDisposal: keep);
     }
 
     public DirectoryInfo CreateSubDirectory(string subDirectoryName)
