@@ -1,3 +1,6 @@
+using Benchy.Core;
+using Benchy.Infrastructure;
+
 namespace Benchy.Cli;
 
 public static class InteractiveHandler
@@ -11,19 +14,67 @@ public static class InteractiveHandler
         string? targetRef
     )
     {
-        // Default to currently checked out version if target not specified
-        var effectiveTargetRef = targetRef ?? "HEAD";
+        var repository = FindRepository(repositoryPath);
 
-        Console.WriteLine("=== INTERACTIVE MODE ===");
-        Console.WriteLine($"Baseline ref: {baselineRef}");
-        Console.WriteLine(
-            $"Target ref: {effectiveTargetRef}{(targetRef == null ? " (currently checked out version)" : "")}"
+        var baselineTemporaryDirectory = Directories.CreateTemporaryDirectory("baseline");
+        var baselineSourceDirectory = CheckoutReference(
+            repository: repository,
+            reference: baselineRef,
+            temporaryDirectory: baselineTemporaryDirectory
         );
-        Console.WriteLine(
-            $"Repository path: {repositoryPath?.FullName ?? "auto-detect from current directory"}"
+        var baselineRun = BenchmarkRun.FromSourcePath(
+            sourceDirectory: baselineSourceDirectory,
+            temporaryDirectory: baselineTemporaryDirectory,
+            name: $"baseline ({baselineRef})",
+            benchmarks: benchmarks
         );
-        Console.WriteLine($"Benchmarks: [{string.Join(", ", benchmarks)}]");
-        Console.WriteLine($"No delete: {noDelete}");
-        Console.WriteLine($"Verbose: {verbose}");
+
+        var targetTemporaryDirectory = Directories.CreateTemporaryDirectory("target");
+        var targetSourceDirectory = CheckoutReference(
+            repository: repository,
+            reference: targetRef,
+            temporaryDirectory: targetTemporaryDirectory
+        );
+        var targetRun = BenchmarkRun.FromSourcePath(
+            sourceDirectory: targetSourceDirectory,
+            temporaryDirectory: targetTemporaryDirectory,
+            name: $"target ({targetRef ?? "HEAD"})",
+            benchmarks: benchmarks
+        );
+
+        var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, verbose);
+
+        _ = results; // TODO
+    }
+
+    private static GitRepository FindRepository(DirectoryInfo? repositoryPath)
+    {
+        if (repositoryPath is not null)
+        {
+            return GitRepository.Open(repositoryPath.FullName);
+        }
+
+        // Auto-detect repository from current directory
+        return GitRepository.Open(Directory.GetCurrentDirectory());
+    }
+
+    private static DirectoryInfo CheckoutReference(
+        GitRepository repository,
+        string? reference,
+        DirectoryInfo temporaryDirectory
+    )
+    {
+        if (string.IsNullOrEmpty(reference))
+        {
+            throw new NotImplementedException("No target reference is not implemented yet.");
+        }
+
+        Output.Info($"Checking out reference '{reference}'");
+
+        var sourceDirectory = temporaryDirectory.CreateSubdirectory("src");
+
+        GitRepository.Clone(repository, sourceDirectory.FullName).Checkout(reference);
+
+        return sourceDirectory;
     }
 }

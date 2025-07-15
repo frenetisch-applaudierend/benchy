@@ -12,13 +12,7 @@ public static class CiHandler
         DirectoryInfo targetDirectory
     )
     {
-        Console.WriteLine("=== CI MODE ===");
-        Console.WriteLine($"Baseline directory: {baselineDirectory.FullName}");
-        Console.WriteLine($"Target directory: {targetDirectory.FullName}");
-        Console.WriteLine($"Benchmarks: [{string.Join(", ", benchmarks)}]");
-        Console.WriteLine($"Verbose: {verbose}");
-
-        var baselineTemporaryDirectory = Directories.CreateTemporaryDirectory("ci-baseline");
+        var baselineTemporaryDirectory = Directories.CreateTemporaryDirectory("baseline");
         var baselineRun = BenchmarkRun.FromSourcePath(
             sourceDirectory: baselineDirectory,
             temporaryDirectory: baselineTemporaryDirectory,
@@ -26,7 +20,7 @@ public static class CiHandler
             benchmarks: benchmarks
         );
 
-        var targetTemporaryDirectory = Directories.CreateTemporaryDirectory("ci-target");
+        var targetTemporaryDirectory = Directories.CreateTemporaryDirectory("target");
         var targetRun = BenchmarkRun.FromSourcePath(
             sourceDirectory: targetDirectory,
             temporaryDirectory: targetTemporaryDirectory,
@@ -36,7 +30,6 @@ public static class CiHandler
 
         var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, verbose);
 
-        Console.WriteLine("=== COMPARISON RESULTS ===");
-        Console.WriteLine(results.ToString());
+        _ = results; // TODO
     }
 }

@@ -36,16 +36,6 @@ public sealed class BenchmarkRun
         return new BenchmarkRun(name, outputDirectory, benchmarkProjects);
     }
 
-    public static BenchmarkRun FromCommitReference(
-        GitRepository sourceRepository,
-        DirectoryInfo temporaryDirectory,
-        string commitReference,
-        IEnumerable<string> benchmarks
-    )
-    {
-        throw new NotImplementedException("This method is not implemented yet.");
-    }
-
     public void Prepare(bool verbose)
     {
         foreach (var project in BenchmarkProjects)
