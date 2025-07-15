@@ -12,7 +12,12 @@ public static class CiHandler
         DirectoryInfo targetDirectory
     )
     {
-        var baselineTemporaryDirectory = Directories.CreateTemporaryDirectory("baseline");
+        Output.EnableVerbose = verbose;
+
+        using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: true);
+        Output.Verbose($"Temporary directory for comparison: {temporaryDirectory.FullName}");
+
+        var baselineTemporaryDirectory = temporaryDirectory.CreateSubDirectory("baseline");
         var baselineRun = BenchmarkRun.FromSourcePath(
             sourceDirectory: baselineDirectory,
             temporaryDirectory: baselineTemporaryDirectory,
@@ -20,7 +25,7 @@ public static class CiHandler
             benchmarks: benchmarks
         );
 
-        var targetTemporaryDirectory = Directories.CreateTemporaryDirectory("target");
+        var targetTemporaryDirectory = temporaryDirectory.CreateSubDirectory("target");
         var targetRun = BenchmarkRun.FromSourcePath(
             sourceDirectory: targetDirectory,
             temporaryDirectory: targetTemporaryDirectory,

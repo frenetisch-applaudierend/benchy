@@ -14,9 +14,14 @@ public static class InteractiveHandler
         string? targetRef
     )
     {
+        Output.EnableVerbose = verbose;
+
+        using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: noDelete);
+        Output.Verbose($"Temporary directory for comparison: {temporaryDirectory.FullName}");
+
         var repository = FindRepository(repositoryPath);
 
-        var baselineTemporaryDirectory = Directories.CreateTemporaryDirectory("baseline");
+        var baselineTemporaryDirectory = temporaryDirectory.CreateSubDirectory("baseline");
         var baselineSourceDirectory = CheckoutReference(
             repository: repository,
             reference: baselineRef,
@@ -29,7 +34,7 @@ public static class InteractiveHandler
             benchmarks: benchmarks
         );
 
-        var targetTemporaryDirectory = Directories.CreateTemporaryDirectory("target");
+        var targetTemporaryDirectory = temporaryDirectory.CreateSubDirectory("target");
         var targetSourceDirectory = CheckoutReference(
             repository: repository,
             reference: targetRef,
@@ -46,15 +51,11 @@ public static class InteractiveHandler
 
         _ = results; // TODO
 
-        if (!noDelete)
+        if (noDelete)
         {
-            Output.Verbose("Cleaning up temporary directories");
-            baselineTemporaryDirectory.Delete(true);
-            targetTemporaryDirectory.Delete(true);
-        }
-        else
-        {
-            Output.Info("Skipping cleanup of temporary directories");
+            Output.Info(
+                $"Skipping cleanup of temporary directories at {temporaryDirectory.FullName}"
+            );
         }
     }
 
