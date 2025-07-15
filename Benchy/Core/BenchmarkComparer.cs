@@ -37,9 +37,12 @@ public static class BenchmarkComparer
         }
     }
 
-    private static IReadOnlyList<BenchmarkResult> RunBenchmarks(BenchmarkRun[] runs, bool verbose)
+    private static IReadOnlyList<BenchmarkRunResult> RunBenchmarks(
+        BenchmarkRun[] runs,
+        bool verbose
+    )
     {
-        var results = new List<BenchmarkResult>(capacity: runs.Length);
+        var results = new List<BenchmarkRunResult>(capacity: runs.Length);
 
         foreach (var run in runs)
         {
@@ -50,7 +53,7 @@ public static class BenchmarkComparer
         return results;
     }
 
-    private static void AnalyzeBenchmarks(IReadOnlyList<BenchmarkResult> results)
+    private static void AnalyzeBenchmarks(IReadOnlyList<BenchmarkRunResult> results)
     {
         Output.Info($"Analyzing benchmark results");
 

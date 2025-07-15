@@ -45,6 +45,17 @@ public static class InteractiveHandler
         var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, verbose);
 
         _ = results; // TODO
+
+        if (!noDelete)
+        {
+            Output.Info("Cleaning up temporary directories");
+            baselineTemporaryDirectory.Delete(true);
+            targetTemporaryDirectory.Delete(true);
+        }
+        else
+        {
+            Output.Info("Skipping cleanup of temporary directories");
+        }
     }
 
     private static GitRepository FindRepository(DirectoryInfo? repositoryPath)

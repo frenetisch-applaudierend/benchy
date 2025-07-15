@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Benchy.Infrastructure;
 
 namespace Benchy.Core;
 

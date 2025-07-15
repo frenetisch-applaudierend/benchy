@@ -1,3 +1,3 @@
 namespace Benchy.Core;
 
-public record BenchmarkResult(BenchmarkRun Run, IReadOnlyList<BenchmarkReport> Reports);
+public sealed record BenchmarkRunResult(BenchmarkRun Run, IReadOnlyList<BenchmarkReport> Reports);

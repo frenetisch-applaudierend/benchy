@@ -44,7 +44,7 @@ public sealed class BenchmarkRun
         }
     }
 
-    public BenchmarkResult Run(bool verbose)
+    public BenchmarkRunResult Run(bool verbose)
     {
         Output.Info($"Running benchmarks for {Name}");
 
@@ -53,7 +53,7 @@ public sealed class BenchmarkRun
             project.Run(OutputDirectory, verbose);
         }
 
-        return new BenchmarkResult(
+        return new BenchmarkRunResult(
             this,
             [.. BenchmarkReport.LoadReports(OutputDirectory.SubDirectory("results"))]
         );
