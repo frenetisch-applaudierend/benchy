@@ -48,7 +48,7 @@ public static class InteractiveHandler
 
         if (!noDelete)
         {
-            Output.Info("Cleaning up temporary directories");
+            Output.Verbose("Cleaning up temporary directories");
             baselineTemporaryDirectory.Delete(true);
             targetTemporaryDirectory.Delete(true);
         }
