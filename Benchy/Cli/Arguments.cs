@@ -16,6 +16,11 @@ public static class Arguments
             name: "--verbose",
             description: "Enable verbose output"
         );
+
+        public static readonly Option<DirectoryInfo?> OutputDirectoryOption = new(
+            name: "--output-directory",
+            description: "The directory to output benchmark results"
+        );
     }
 
     public static class Interactive

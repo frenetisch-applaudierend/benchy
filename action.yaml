@@ -1,0 +1,87 @@
+name: 'Benchy Benchmark Comparison'
+description: 'Compare C# project benchmarks between two git revisions using the Benchy tool'
+author: 'Markus Gasser'
+
+inputs:
+  baseline-ref:
+    description: 'Git reference (commit, branch, tag) to use as baseline for comparison'
+    required: false
+    default: ${{ github.event.repository.default_branch }}
+  benchy-version:
+    description: 'Version of the Benchy tool to install'
+    required: false
+    default: 'latest'
+  dotnet-version:
+    description: '.NET version to use'
+    required: false
+    default: '9.x'
+
+outputs:
+  comparison-result:
+    description: 'Path to the benchmark comparison results'
+    value: ${{ steps.run-benchy.outputs.result-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ inputs.dotnet-version }}
+
+    - name: Install Benchy tool
+      shell: bash
+      run: |
+        if [ "${{ inputs.benchy-version }}" = "latest" ]; then
+          dotnet tool install --global benchy
+        else
+          dotnet tool install --global benchy --version ${{ inputs.benchy-version }}
+        fi
+
+    - name: Create workspace directories
+      shell: bash
+      run: |
+        mkdir -p baseline-workspace
+        mkdir -p current-workspace
+
+    - name: Checkout baseline revision
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.baseline-ref }}
+        path: baseline-workspace
+        fetch-depth: 0
+
+    - name: Checkout current revision
+      uses: actions/checkout@v4
+      with:
+        path: current-workspace
+        fetch-depth: 0
+
+    - name: Run Benchy comparison
+      id: run-benchy
+      shell: bash
+      run: |
+        # Run the benchmark comparison
+        dotnet benchy baseline-workspace current-workspace --output-directory benchmark-results
+
+        # Set output for potential artifacts
+        echo "result-path=$(pwd)/benchmark-results" >> $GITHUB_OUTPUT
+
+    - name: Comment PR with results
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const fs = require('fs');
+          const comment = fs.readFileSync('benchmark-results/benchy-summary.md', 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+branding:
+  icon: 'bar-chart-2'
+  color: 'blue'

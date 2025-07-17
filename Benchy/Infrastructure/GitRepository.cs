@@ -27,6 +27,11 @@ public sealed class GitRepository : IDisposable
         return new GitRepository(repo);
     }
 
+    public DirectoryInfo? WorkingDirectory =>
+        _repository.Info.WorkingDirectory != null
+            ? new DirectoryInfo(_repository.Info.WorkingDirectory)
+            : null;
+
     public GitRepository Checkout(string reference)
     {
         var commit = LoadAndValidateCommit(reference);

@@ -5,6 +5,7 @@ var rootCommand = new RootCommand(
     "Benchmark Comparison Tool for comparing performance between commits"
 );
 rootCommand.AddGlobalOption(Arguments.Shared.VerboseOption);
+rootCommand.AddGlobalOption(Arguments.Shared.OutputDirectoryOption);
 rootCommand.AddGlobalOption(Arguments.Shared.BenchmarkOption);
 
 var compareCommand = new Command(
@@ -29,15 +30,18 @@ rootCommand.AddCommand(ciCommand);
 compareCommand.SetHandler(
     InteractiveHandler.Handle,
     Arguments.Shared.VerboseOption,
+    Arguments.Shared.OutputDirectoryOption,
     Arguments.Shared.BenchmarkOption,
     Arguments.Interactive.RepositoryPathOption,
     Arguments.Interactive.NoDeleteOption,
     Arguments.Interactive.BaselineArgument,
     Arguments.Interactive.TargetArgument
 );
+
 ciCommand.SetHandler(
     CiHandler.Handle,
     Arguments.Shared.VerboseOption,
+    Arguments.Shared.OutputDirectoryOption,
     Arguments.Shared.BenchmarkOption,
     Arguments.Ci.BaselineDirectoryArgument,
     Arguments.Ci.TargetDirectoryArgument

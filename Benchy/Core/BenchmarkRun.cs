@@ -22,7 +22,7 @@ public sealed class BenchmarkRun
 
     public static BenchmarkRun FromSourcePath(
         DirectoryInfo sourceDirectory,
-        DirectoryInfo temporaryDirectory,
+        DirectoryInfo outputDirectory,
         string name,
         IEnumerable<string> benchmarks
     )
@@ -30,8 +30,6 @@ public sealed class BenchmarkRun
         var benchmarkProjects = benchmarks
             .Select(benchmark => BenchmarkProject.FromName(benchmark, sourceDirectory))
             .ToList();
-
-        var outputDirectory = temporaryDirectory.CreateSubdirectory("out");
 
         return new BenchmarkRun(name, outputDirectory, benchmarkProjects);
     }
@@ -55,7 +53,7 @@ public sealed class BenchmarkRun
 
         return new BenchmarkRunResult(
             this,
-            [.. BenchmarkReport.LoadReports(OutputDirectory.SubDirectory("results"))]
+            [.. BenchmarkReport.LoadReports(OutputDirectory.Subdirectory("results"))]
         );
     }
 }

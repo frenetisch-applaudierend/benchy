@@ -8,6 +8,7 @@ public static class InteractiveHandler
 {
     public static void Handle(
         bool verbose,
+        DirectoryInfo? providedOutputDirectory,
         string[] benchmarks,
         DirectoryInfo? repositoryPath,
         bool noDelete,
@@ -20,31 +21,27 @@ public static class InteractiveHandler
         using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: noDelete);
         Output.Verbose($"Temporary directory for comparison: {temporaryDirectory.FullName}");
 
+        var outputDirectory =
+            providedOutputDirectory ?? temporaryDirectory.CreateSubdirectory("out");
+        var sourceDirectory = temporaryDirectory.CreateSubdirectory("src");
+
         var repository = FindRepository(repositoryPath);
 
-        var baselineTemporaryDirectory = temporaryDirectory.CreateSubDirectory("baseline");
-        var baselineSourceDirectory = CheckoutReference(
+        var baselineRun = CheckoutRun(
             repository: repository,
+            label: "baseline",
             reference: baselineRef,
-            temporaryDirectory: baselineTemporaryDirectory
-        );
-        var baselineRun = BenchmarkRun.FromSourcePath(
-            sourceDirectory: baselineSourceDirectory,
-            temporaryDirectory: baselineTemporaryDirectory,
-            name: $"baseline ({baselineRef})",
+            sourceDirectory: sourceDirectory,
+            outputDirectory: outputDirectory,
             benchmarks: benchmarks
         );
 
-        var targetTemporaryDirectory = temporaryDirectory.CreateSubDirectory("target");
-        var targetSourceDirectory = CheckoutReference(
+        var targetRun = CheckoutRun(
             repository: repository,
+            label: "target",
             reference: targetRef,
-            temporaryDirectory: targetTemporaryDirectory
-        );
-        var targetRun = BenchmarkRun.FromSourcePath(
-            sourceDirectory: targetSourceDirectory,
-            temporaryDirectory: targetTemporaryDirectory,
-            name: $"target ({targetRef ?? "HEAD"})",
+            sourceDirectory: sourceDirectory,
+            outputDirectory: outputDirectory,
             benchmarks: benchmarks
         );
 
@@ -71,10 +68,33 @@ public static class InteractiveHandler
         return GitRepository.Open(Directory.GetCurrentDirectory());
     }
 
+    private static BenchmarkRun CheckoutRun(
+        GitRepository repository,
+        string label,
+        string? reference,
+        DirectoryInfo sourceDirectory,
+        DirectoryInfo outputDirectory,
+        string[] benchmarks
+    )
+    {
+        var runSourceDirectory = CheckoutReference(
+            repository: repository,
+            reference: reference,
+            sourceDirectory: sourceDirectory.CreateSubdirectory(label)
+        );
+
+        return BenchmarkRun.FromSourcePath(
+            sourceDirectory: runSourceDirectory,
+            outputDirectory: outputDirectory.CreateSubdirectory(label),
+            name: $"{label} ({reference ?? "working copy"})",
+            benchmarks: benchmarks
+        );
+    }
+
     private static DirectoryInfo CheckoutReference(
         GitRepository repository,
         string? reference,
-        DirectoryInfo temporaryDirectory
+        DirectoryInfo sourceDirectory
     )
     {
         if (string.IsNullOrEmpty(reference))
@@ -83,8 +103,6 @@ public static class InteractiveHandler
         }
 
         Output.Info($"Checking out reference '{reference}'");
-
-        var sourceDirectory = temporaryDirectory.CreateSubdirectory("src");
 
         GitRepository.Clone(repository, sourceDirectory.FullName).Checkout(reference);
 

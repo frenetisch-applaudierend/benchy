@@ -8,6 +8,7 @@ public static class CiHandler
 {
     public static void Handle(
         bool verbose,
+        DirectoryInfo? providedOutputDirectory,
         string[] benchmarks,
         DirectoryInfo baselineDirectory,
         DirectoryInfo targetDirectory
@@ -18,18 +19,19 @@ public static class CiHandler
         using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: true);
         Output.Verbose($"Temporary directory for comparison: {temporaryDirectory.FullName}");
 
-        var baselineTemporaryDirectory = temporaryDirectory.CreateSubDirectory("baseline");
+        var outputDirectory =
+            providedOutputDirectory ?? temporaryDirectory.CreateSubdirectory("out");
+
         var baselineRun = BenchmarkRun.FromSourcePath(
             sourceDirectory: baselineDirectory,
-            temporaryDirectory: baselineTemporaryDirectory,
+            outputDirectory: outputDirectory.CreateSubdirectory("baseline"),
             name: "baseline",
             benchmarks: benchmarks
         );
 
-        var targetTemporaryDirectory = temporaryDirectory.CreateSubDirectory("target");
         var targetRun = BenchmarkRun.FromSourcePath(
             sourceDirectory: targetDirectory,
-            temporaryDirectory: targetTemporaryDirectory,
+            outputDirectory: outputDirectory.CreateSubdirectory("target"),
             name: "target",
             benchmarks: benchmarks
         );

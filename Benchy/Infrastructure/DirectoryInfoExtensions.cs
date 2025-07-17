@@ -4,7 +4,7 @@ namespace Benchy.Infrastructure;
 
 public static class Directories
 {
-    public static DirectoryInfo SubDirectory(this DirectoryInfo directory, string subDirectoryName)
+    public static DirectoryInfo Subdirectory(this DirectoryInfo directory, string subDirectoryName)
     {
         return new DirectoryInfo(Path.Combine(directory.FullName, subDirectoryName));
     }
@@ -59,7 +59,7 @@ public sealed class TemporaryDirectory : IDisposable
         return new TemporaryDirectory(new DirectoryInfo(tempPath), keepAfterDisposal: keep);
     }
 
-    public DirectoryInfo CreateSubDirectory(string subDirectoryName)
+    public DirectoryInfo CreateSubdirectory(string subDirectoryName)
     {
         return directory.CreateSubdirectory(subDirectoryName);
     }
