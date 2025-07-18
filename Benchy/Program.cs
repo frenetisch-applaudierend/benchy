@@ -47,5 +47,4 @@ ciCommand.SetHandler(
     Arguments.Ci.TargetDirectoryArgument
 );
 
-// Execute the command
 return await rootCommand.InvokeAsync(args);

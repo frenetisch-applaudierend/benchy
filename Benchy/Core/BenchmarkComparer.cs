@@ -10,25 +10,16 @@ public static class BenchmarkComparer
         bool verbose
     )
     {
-        Output.EnableVerbose = verbose;
-
         BenchmarkRun[] runs = [baseline, target];
 
-        try
-        {
-            PrepareRuns(runs, verbose);
-            var results = RunBenchmarks(runs, verbose);
-            var comparisonResult = BenchmarkComparisonResult.FromBenchmarkRunResults(
-                results[0], // baseline
-                results[1] // target
-            );
+        PrepareRuns(runs, verbose);
+        var results = RunBenchmarks(runs, verbose);
+        var comparisonResult = BenchmarkComparisonResult.FromBenchmarkRunResults(
+            results[0], // baseline
+            results[1] // target
+        );
 
-            return comparisonResult;
-        }
-        catch (Exception ex)
-        {
-            return Output.Fail<BenchmarkComparisonResult>(ex, verbose);
-        }
+        return comparisonResult;
     }
 
     private static void PrepareRuns(IReadOnlyList<BenchmarkRun> runs, bool verbose)

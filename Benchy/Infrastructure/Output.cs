@@ -26,17 +26,4 @@ public static class Output
     }
 
     public static void Error(string message) => Console.Error.WriteLine(message);
-
-    public static T Fail<T>(Exception ex, bool verbose)
-    {
-        Error(ex.Message);
-
-        if (verbose && ex.StackTrace is { } stackTrace)
-        {
-            Error(stackTrace);
-        }
-
-        Environment.Exit(1);
-        return default!; // Unreachable
-    }
 }

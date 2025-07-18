@@ -18,6 +18,40 @@ public static class InteractiveHandler
     {
         Output.EnableVerbose = verbose;
 
+        try
+        {
+            HandleInternal(
+                verbose,
+                providedOutputDirectory,
+                benchmarks,
+                repositoryPath,
+                noDelete,
+                baselineRef,
+                targetRef
+            );
+        }
+        catch (Exception ex)
+        {
+            Output.Error(ex.Message);
+
+            if (verbose && ex.StackTrace is { } stackTrace)
+            {
+                Output.Error(stackTrace);
+            }
+            Environment.Exit(1);
+        }
+    }
+
+    private static void HandleInternal(
+        bool verbose,
+        DirectoryInfo? providedOutputDirectory,
+        string[] benchmarks,
+        DirectoryInfo? repositoryPath,
+        bool noDelete,
+        string baselineRef,
+        string? targetRef
+    )
+    {
         using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: noDelete);
         Output.Verbose($"Temporary directory for comparison: {temporaryDirectory.FullName}");
 
@@ -31,7 +65,7 @@ public static class InteractiveHandler
             repository: repository,
             label: "baseline",
             reference: baselineRef,
-            sourceDirectory: sourceDirectory,
+            checkoutRootDirectory: sourceDirectory,
             outputDirectory: outputDirectory,
             benchmarks: benchmarks
         );
@@ -40,7 +74,7 @@ public static class InteractiveHandler
             repository: repository,
             label: "target",
             reference: targetRef,
-            sourceDirectory: sourceDirectory,
+            checkoutRootDirectory: sourceDirectory,
             outputDirectory: outputDirectory,
             benchmarks: benchmarks
         );
@@ -72,16 +106,31 @@ public static class InteractiveHandler
         GitRepository repository,
         string label,
         string? reference,
-        DirectoryInfo sourceDirectory,
+        DirectoryInfo checkoutRootDirectory,
         DirectoryInfo outputDirectory,
         string[] benchmarks
     )
     {
-        var runSourceDirectory = CheckoutReference(
-            repository: repository,
-            reference: reference,
-            sourceDirectory: sourceDirectory.CreateSubdirectory(label)
-        );
+        DirectoryInfo runSourceDirectory;
+
+        if (string.IsNullOrEmpty(reference))
+        {
+            Output.Info($"Using current working copy for {label}");
+            if (repository.WorkingDirectory is not { } workingDirectory)
+            {
+                throw new InvalidOperationException(
+                    "Comparing to the working copy is not supported for bare repositories"
+                );
+            }
+
+            runSourceDirectory = workingDirectory;
+        }
+        else
+        {
+            Output.Info($"Checking out reference '{reference}' for {label}");
+            runSourceDirectory = checkoutRootDirectory.CreateSubdirectory(label);
+            GitRepository.Clone(repository, runSourceDirectory.FullName).Checkout(reference);
+        }
 
         return BenchmarkRun.FromSourcePath(
             sourceDirectory: runSourceDirectory,
@@ -89,24 +138,6 @@ public static class InteractiveHandler
             name: $"{label} ({reference ?? "working copy"})",
             benchmarks: benchmarks
         );
-    }
-
-    private static DirectoryInfo CheckoutReference(
-        GitRepository repository,
-        string? reference,
-        DirectoryInfo sourceDirectory
-    )
-    {
-        if (string.IsNullOrEmpty(reference))
-        {
-            throw new NotImplementedException("No target reference is not implemented yet.");
-        }
-
-        Output.Info($"Checking out reference '{reference}'");
-
-        GitRepository.Clone(repository, sourceDirectory.FullName).Checkout(reference);
-
-        return sourceDirectory;
     }
 
     private static void PrintBenchmarkComparison(BenchmarkComparisonResult results)
