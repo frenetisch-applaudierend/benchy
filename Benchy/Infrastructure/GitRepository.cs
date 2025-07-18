@@ -4,11 +4,11 @@ namespace Benchy.Infrastructure;
 
 public sealed class GitRepository : IDisposable
 {
-    private readonly Repository _repository;
+    private readonly Repository repository;
 
     private GitRepository(Repository repository)
     {
-        _repository = repository;
+        this.repository = repository;
     }
 
     public static GitRepository Open(string path)
@@ -19,7 +19,7 @@ public sealed class GitRepository : IDisposable
 
     public static GitRepository Clone(GitRepository sourceRepository, string targetPath)
     {
-        var sourcePath = sourceRepository._repository.Info.Path;
+        var sourcePath = sourceRepository.repository.Info.Path;
 
         Repository.Clone(sourcePath, targetPath, new CloneOptions { Checkout = false });
 
@@ -28,33 +28,33 @@ public sealed class GitRepository : IDisposable
     }
 
     public DirectoryInfo? WorkingDirectory =>
-        _repository.Info.WorkingDirectory != null
-            ? new DirectoryInfo(_repository.Info.WorkingDirectory)
+        repository.Info.WorkingDirectory != null
+            ? new DirectoryInfo(repository.Info.WorkingDirectory)
             : null;
 
     public GitRepository Checkout(string reference)
     {
         var commit = LoadAndValidateCommit(reference);
-        Commands.Checkout(_repository, commit);
+        Commands.Checkout(repository, commit);
 
         return this;
     }
 
     public void Delete()
     {
-        Directory.Delete(_repository.Info.WorkingDirectory, recursive: true);
+        Directory.Delete(repository.Info.WorkingDirectory, recursive: true);
     }
 
     private Commit LoadAndValidateCommit(string reference)
     {
         var commit =
-            _repository.Lookup<Commit>(reference)
+            repository.Lookup<Commit>(reference)
             ?? throw new ArgumentException($"Commit {reference} does not exist in the repository.");
         return commit;
     }
 
     void IDisposable.Dispose()
     {
-        _repository.Dispose();
+        repository.Dispose();
     }
 }
