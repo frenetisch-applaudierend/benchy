@@ -17,6 +17,11 @@ public static class CiHandler
     {
         Output.EnableVerbose = verbose;
 
+        if (benchmarks.Length == 0)
+        {
+            throw new ArgumentException("At least one benchmark must be specified.");
+        }
+
         using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: true);
         Output.Verbose($"Temporary directory for comparison: {temporaryDirectory.FullName}");
 

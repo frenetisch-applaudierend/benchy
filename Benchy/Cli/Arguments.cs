@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.Parsing;
 
 namespace Benchy.Cli;
 
@@ -8,8 +9,7 @@ public static class Arguments
     {
         public static readonly Option<string[]> BenchmarkOption = new(
             aliases: ["--benchmark", "-b"],
-            description: "The benchmark project(s) to run",
-            getDefaultValue: () => []
+            description: "The benchmark project(s) to run"
         );
 
         public static readonly Option<bool> VerboseOption = new(
@@ -26,7 +26,23 @@ public static class Arguments
             name: "--output-style",
             description: "Output styles to use (comma-separated). Valid values: console, json, markdown. Default: console for interactive mode, json+markdown for CI mode",
             getDefaultValue: () => []
-        ).WithValidOptions(["console", "json", "markdown"]);
+        ).WithValidator(
+            (option, result) =>
+            {
+                var selectedOptions = result.GetValueForOption(option) ?? [];
+                HashSet<string> validOptions = ["console", "json", "markdown"];
+
+                foreach (var selected in selectedOptions)
+                {
+                    if (!validOptions.Contains(selected))
+                    {
+                        result.ErrorMessage =
+                            $"Invalid option: '{selected}'. Valid options are: {string.Join(", ", validOptions)}";
+                        return;
+                    }
+                }
+            }
+        );
     }
 
     public static class Interactive
@@ -71,24 +87,11 @@ public static class Arguments
 
 file static class ArgumentsExtensions
 {
-    public static Option<T[]> WithValidOptions<T>(
-        this Option<T[]> option,
-        IReadOnlyCollection<T> validOptions
-    )
+    public delegate void OptionValidator<T>(Option<T> option, OptionResult result);
+
+    public static Option<T> WithValidator<T>(this Option<T> option, OptionValidator<T> validator)
     {
-        option.AddValidator(result =>
-        {
-            var selectedOptions = result.GetValueForOption(option) ?? [];
-            foreach (var selected in selectedOptions)
-            {
-                if (!validOptions.Contains(selected))
-                {
-                    result.ErrorMessage =
-                        $"Invalid option: '{selected}'. Valid options are: {string.Join(", ", validOptions)}";
-                    return;
-                }
-            }
-        });
+        option.AddValidator(result => validator(option, result));
         return option;
     }
 }

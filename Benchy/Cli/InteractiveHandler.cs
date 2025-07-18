@@ -19,6 +19,11 @@ public static class InteractiveHandler
     {
         Output.EnableVerbose = verbose;
 
+        if (benchmarks.Length == 0)
+        {
+            throw new ArgumentException("At least one benchmark must be specified.");
+        }
+
         try
         {
             HandleInternal(
