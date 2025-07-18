@@ -21,6 +21,12 @@ public static class Arguments
             name: "--output-directory",
             description: "The directory to output benchmark results"
         );
+
+        public static readonly Option<string[]> OutputStyleOption = new Option<string[]>(
+            name: "--output-style",
+            description: "Output styles to use (comma-separated). Valid values: console, json, markdown. Default: console for interactive mode, json+markdown for CI mode",
+            getDefaultValue: () => []
+        ).WithValidOptions(["console", "json", "markdown"]);
     }
 
     public static class Interactive
@@ -65,18 +71,24 @@ public static class Arguments
 
 file static class ArgumentsExtensions
 {
-    public static Argument<T[]> WithMultipleItems<T>(this Argument<T[]> argument, int minCount)
+    public static Option<T[]> WithValidOptions<T>(
+        this Option<T[]> option,
+        IReadOnlyCollection<T> validOptions
+    )
     {
-        argument.Arity = ArgumentArity.OneOrMore;
-        argument.AddValidator(result =>
+        option.AddValidator(result =>
         {
-            var commits = result.GetValueForArgument(argument);
-            if (commits.Length < minCount)
+            var selectedOptions = result.GetValueForOption(option) ?? [];
+            foreach (var selected in selectedOptions)
             {
-                result.ErrorMessage = $"At least {minCount} {argument.Name} are required.";
+                if (!validOptions.Contains(selected))
+                {
+                    result.ErrorMessage =
+                        $"Invalid option: '{selected}'. Valid options are: {string.Join(", ", validOptions)}";
+                    return;
+                }
             }
         });
-
-        return argument;
+        return option;
     }
 }

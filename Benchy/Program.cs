@@ -6,6 +6,7 @@ var rootCommand = new RootCommand(
 );
 rootCommand.AddGlobalOption(Arguments.Shared.VerboseOption);
 rootCommand.AddGlobalOption(Arguments.Shared.OutputDirectoryOption);
+rootCommand.AddGlobalOption(Arguments.Shared.OutputStyleOption);
 rootCommand.AddGlobalOption(Arguments.Shared.BenchmarkOption);
 
 var compareCommand = new Command(
@@ -31,6 +32,7 @@ compareCommand.SetHandler(
     InteractiveHandler.Handle,
     Arguments.Shared.VerboseOption,
     Arguments.Shared.OutputDirectoryOption,
+    Arguments.Shared.OutputStyleOption,
     Arguments.Shared.BenchmarkOption,
     Arguments.Interactive.RepositoryPathOption,
     Arguments.Interactive.NoDeleteOption,
@@ -42,6 +44,7 @@ ciCommand.SetHandler(
     CiHandler.Handle,
     Arguments.Shared.VerboseOption,
     Arguments.Shared.OutputDirectoryOption,
+    Arguments.Shared.OutputStyleOption,
     Arguments.Shared.BenchmarkOption,
     Arguments.Ci.BaselineDirectoryArgument,
     Arguments.Ci.TargetDirectoryArgument

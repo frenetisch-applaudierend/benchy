@@ -3,7 +3,7 @@ using Benchy.Core;
 
 namespace Benchy.Infrastructure.Reporting;
 
-public class OutputReporter(TextWriter writer, bool useColors = true) : IReporter
+public class OutputReporter(TextWriter writer, bool useColors) : IReporter
 {
     public void GenerateReport(BenchmarkComparisonResult result)
     {
@@ -56,7 +56,7 @@ public class OutputReporter(TextWriter writer, bool useColors = true) : IReporte
         string name,
         ComparisonValue<T> value,
         string unit,
-        bool lowerIsBetter = true
+        bool lowerIsBetter
     )
         where T : struct, IComparable<T>, System.Numerics.INumber<T>
     {

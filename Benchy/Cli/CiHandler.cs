@@ -9,6 +9,7 @@ public static class CiHandler
     public static void Handle(
         bool verbose,
         DirectoryInfo? providedOutputDirectory,
+        string[] outputStyles,
         string[] benchmarks,
         DirectoryInfo baselineDirectory,
         DirectoryInfo targetDirectory
@@ -38,9 +39,12 @@ public static class CiHandler
 
         var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, verbose);
 
-        var reporter = new CompositeReporter(
-            new JsonReporter(Path.Combine(outputDirectory.FullName, "benchy-results.json")),
-            new MarkdownReporter(Path.Combine(outputDirectory.FullName, "benchy-summary.md"))
+        var reporter = Reporting.CreateReporter(
+            outputStyles,
+            outputDirectory,
+            Console.Out,
+            useColors: false,
+            isInteractiveMode: false
         );
         reporter.GenerateReport(results);
     }

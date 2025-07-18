@@ -9,6 +9,7 @@ public static class InteractiveHandler
     public static void Handle(
         bool verbose,
         DirectoryInfo? providedOutputDirectory,
+        string[] outputStyles,
         string[] benchmarks,
         DirectoryInfo? repositoryPath,
         bool noDelete,
@@ -23,6 +24,7 @@ public static class InteractiveHandler
             HandleInternal(
                 verbose,
                 providedOutputDirectory,
+                outputStyles,
                 benchmarks,
                 repositoryPath,
                 noDelete,
@@ -45,6 +47,7 @@ public static class InteractiveHandler
     private static void HandleInternal(
         bool verbose,
         DirectoryInfo? providedOutputDirectory,
+        string[] outputStyles,
         string[] benchmarks,
         DirectoryInfo? repositoryPath,
         bool noDelete,
@@ -81,7 +84,13 @@ public static class InteractiveHandler
 
         var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, verbose);
 
-        var reporter = new OutputReporter(Console.Out, useColors: true);
+        var reporter = Reporting.CreateReporter(
+            outputStyles,
+            outputDirectory,
+            Console.Out,
+            useColors: true,
+            isInteractiveMode: true
+        );
         reporter.GenerateReport(results);
 
         if (noDelete)
