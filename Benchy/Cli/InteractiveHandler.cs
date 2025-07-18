@@ -1,3 +1,4 @@
+using Benchy.Configuration;
 using Benchy.Core;
 using Benchy.Infrastructure;
 using Benchy.Infrastructure.Reporting;
@@ -17,25 +18,30 @@ public static class InteractiveHandler
         string? targetRef
     )
     {
-        Output.EnableVerbose = verbose;
-
-        if (benchmarks.Length == 0)
-        {
-            throw new ArgumentException("At least one benchmark must be specified.");
-        }
-
         try
         {
-            HandleInternal(
-                verbose,
-                providedOutputDirectory,
-                outputStyles,
-                benchmarks,
-                repositoryPath,
-                noDelete,
-                baselineRef,
-                targetRef
+            // Load and resolve configuration
+            var fileConfig = ConfigurationLoader.LoadConfiguration();
+            var resolvedConfig = ConfigurationLoader.ResolveConfiguration(
+                fileConfig,
+                isInteractiveMode: true,
+                verboseOverride: verbose,
+                outputDirectoryOverride: providedOutputDirectory,
+                outputStyleOverride: outputStyles.Length > 0 ? outputStyles : null,
+                benchmarksOverride: benchmarks.Length > 0 ? benchmarks : null,
+                noDeleteOverride: noDelete
             );
+
+            Output.EnableVerbose = resolvedConfig.Verbose;
+
+            if (resolvedConfig.Benchmarks.Length == 0)
+            {
+                throw new ArgumentException(
+                    "At least one benchmark must be specified (via command line or configuration file)."
+                );
+            }
+
+            HandleInternal(resolvedConfig, repositoryPath, baselineRef, targetRef);
         }
         catch (Exception ex)
         {
@@ -50,21 +56,17 @@ public static class InteractiveHandler
     }
 
     private static void HandleInternal(
-        bool verbose,
-        DirectoryInfo? providedOutputDirectory,
-        string[] outputStyles,
-        string[] benchmarks,
+        ResolvedConfig config,
         DirectoryInfo? repositoryPath,
-        bool noDelete,
         string baselineRef,
         string? targetRef
     )
     {
-        using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: noDelete);
+        using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: config.NoDelete);
         Output.Verbose($"Temporary directory for comparison: {temporaryDirectory.FullName}");
 
         var outputDirectory =
-            providedOutputDirectory ?? temporaryDirectory.CreateSubdirectory("out");
+            config.OutputDirectory ?? temporaryDirectory.CreateSubdirectory("out");
         var sourceDirectory = temporaryDirectory.CreateSubdirectory("src");
 
         var repository = FindRepository(repositoryPath);
@@ -75,7 +77,7 @@ public static class InteractiveHandler
             reference: baselineRef,
             checkoutRootDirectory: sourceDirectory,
             outputDirectory: outputDirectory,
-            benchmarks: benchmarks
+            benchmarks: config.Benchmarks
         );
 
         var targetRun = CheckoutRun(
@@ -84,13 +86,13 @@ public static class InteractiveHandler
             reference: targetRef,
             checkoutRootDirectory: sourceDirectory,
             outputDirectory: outputDirectory,
-            benchmarks: benchmarks
+            benchmarks: config.Benchmarks
         );
 
-        var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, verbose);
+        var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, config.Verbose);
 
         var reporter = Reporting.CreateReporter(
-            outputStyles,
+            config.OutputStyle,
             outputDirectory,
             Console.Out,
             useColors: true,
@@ -98,7 +100,7 @@ public static class InteractiveHandler
         );
         reporter.GenerateReport(results);
 
-        if (noDelete)
+        if (config.NoDelete)
         {
             Output.Info(
                 $"Skipping cleanup of temporary directories at {temporaryDirectory.FullName}"

@@ -11,7 +11,8 @@
 				"ms-dotnettools.csdevkit",
 				"csharpier.csharpier-vscode",
 				"Anthropic.claude-code",
-				"yzhang.markdown-all-in-one"
+				"yzhang.markdown-all-in-one",
+				"tamasfe.even-better-toml"
 			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh"
