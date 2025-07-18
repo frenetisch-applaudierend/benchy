@@ -1,5 +1,3 @@
-using System;
-
 namespace Benchy.Infrastructure;
 
 public static class Directories

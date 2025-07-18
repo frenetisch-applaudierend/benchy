@@ -7,6 +7,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{5CE8E52D-A8AF-340A-4033-B85429601BE7}"
 	ProjectSection(SolutionItems) = preProject
 		Documentation\Example-BenchmarkResult.json = Documentation\Example-BenchmarkResult.json
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{B36A84DF-456D-A817-6EDD-3EC3E7F6E11F}"
