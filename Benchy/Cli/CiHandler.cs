@@ -5,8 +5,29 @@ using Benchy.Infrastructure.Reporting;
 
 namespace Benchy.Cli;
 
-public static class CiHandler
+public class CiHandler() : CliHandler<CiHandler.Args>(ConfigurationLoader.Mode.Ci)
 {
+    public sealed record Args(
+        bool Verbose,
+        bool NoDelete,
+        string? OutputDirectory,
+        string[]? OutputStyle,
+        string[]? Benchmarks,
+        DirectoryInfo BaselineDirectory,
+        DirectoryInfo TargetDirectory
+    ) : CliHandlerArgs(Verbose, NoDelete)
+    {
+        public override ConfigFromArgs ToConfigFromArgs() =>
+            new()
+            {
+                Verbose = Verbose,
+                OutputDirectory = OutputDirectory,
+                OutputStyle = OutputStyle,
+                Benchmarks = Benchmarks,
+                NoDelete = NoDelete,
+            };
+    }
+
     public static void Handle(
         bool verbose,
         DirectoryInfo? providedOutputDirectory,
@@ -16,67 +37,41 @@ public static class CiHandler
         DirectoryInfo targetDirectory
     )
     {
-        try
-        {
-            // Load and resolve configuration
-            var fileConfig = ConfigurationLoader.LoadConfiguration();
-            var resolvedConfig = ConfigurationLoader.ResolveConfiguration(
-                fileConfig,
-                isInteractiveMode: false,
-                verboseOverride: verbose,
-                outputDirectoryOverride: providedOutputDirectory,
-                outputStyleOverride: outputStyles.Length > 0 ? outputStyles : null,
-                benchmarksOverride: benchmarks.Length > 0 ? benchmarks : null
-            );
+        var args = new Args(
+            Verbose: verbose,
+            NoDelete: true,
+            OutputDirectory: providedOutputDirectory?.FullName,
+            OutputStyle: outputStyles,
+            Benchmarks: benchmarks,
+            BaselineDirectory: baselineDirectory,
+            TargetDirectory: targetDirectory
+        );
+        var handler = new CiHandler();
 
-            Output.EnableVerbose = resolvedConfig.Verbose;
+        handler.Handle(args);
+    }
 
-            if (resolvedConfig.Benchmarks.Length == 0)
-            {
-                throw new ArgumentException(
-                    "At least one benchmark must be specified (via command line or configuration file)."
-                );
-            }
+    protected override BenchmarkComparisonResult Handle(Args args, ResolvedConfig config)
+    {
+        var baselineRun = BenchmarkRun.FromSourcePath(
+            sourceDirectory: args.BaselineDirectory,
+            outputDirectory: config.OutputDirectory.CreateSubdirectory("baseline"),
+            name: "baseline",
+            benchmarks: config.Benchmarks
+        );
 
-            using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: true);
-            Output.Verbose($"Temporary directory for comparison: {temporaryDirectory.FullName}");
+        var targetRun = BenchmarkRun.FromSourcePath(
+            sourceDirectory: args.TargetDirectory,
+            outputDirectory: config.OutputDirectory.CreateSubdirectory("target"),
+            name: "target",
+            benchmarks: config.Benchmarks
+        );
 
-            var outputDirectory =
-                resolvedConfig.OutputDirectory ?? temporaryDirectory.CreateSubdirectory("out");
+        return BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, config.Verbose);
+    }
 
-            var baselineRun = BenchmarkRun.FromSourcePath(
-                sourceDirectory: baselineDirectory,
-                outputDirectory: outputDirectory.CreateSubdirectory("baseline"),
-                name: "baseline",
-                benchmarks: resolvedConfig.Benchmarks
-            );
-
-            var targetRun = BenchmarkRun.FromSourcePath(
-                sourceDirectory: targetDirectory,
-                outputDirectory: outputDirectory.CreateSubdirectory("target"),
-                name: "target",
-                benchmarks: resolvedConfig.Benchmarks
-            );
-
-            var results = BenchmarkComparer.CompareBenchmarks(
-                baselineRun,
-                targetRun,
-                resolvedConfig.Verbose
-            );
-
-            var reporter = Reporting.CreateReporter(
-                resolvedConfig.OutputStyle,
-                outputDirectory,
-                Console.Out,
-                useColors: false,
-                isInteractiveMode: false
-            );
-            reporter.GenerateReport(results);
-        }
-        catch (Exception ex)
-        {
-            Output.Error(ex.Message);
-            Environment.Exit(1);
-        }
+    protected override DirectoryInfo GetConfigBasePath(Args args)
+    {
+        return args.TargetDirectory;
     }
 }
