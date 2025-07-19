@@ -1,0 +1,75 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - 'nuget/*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Extract version from tag
+      id: version
+      run: |
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        VERSION=${TAG_NAME#nuget/}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Extracted version: $VERSION"
+        
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Update project version
+      run: |
+        sed -i "s/<Version>.*<\/Version>/<Version>${{ steps.version.outputs.version }}<\/Version>/" Benchy/Benchy.csproj
+        echo "Updated version to ${{ steps.version.outputs.version }}"
+        
+    - name: Build project
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Test project
+      run: dotnet test --configuration Release --no-build --verbosity normal
+      continue-on-error: false
+      
+    - name: Pack NuGet package
+      run: dotnet pack Benchy/Benchy.csproj --configuration Release --no-build --output ./nupkg
+      
+    - name: List generated packages
+      run: ls -la ./nupkg/
+      
+    - name: Publish to NuGet
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ steps.version.outputs.version }}
+        body: |
+          ## Release Notes for v${{ steps.version.outputs.version }}
+          
+          This release publishes Benchy v${{ steps.version.outputs.version }} to NuGet.
+          
+          ### Installation
+          ```bash
+          dotnet tool install --global FrenetischApplaudierend.Benchy
+          ```
+          
+          ### Usage
+          ```bash
+          benchy --help
+          ```
+        draft: false
+        prerelease: false
