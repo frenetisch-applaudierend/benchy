@@ -12,7 +12,7 @@ public static class Arguments
             description: "The benchmark project(s) to run"
         );
 
-        public static readonly Option<bool> VerboseOption = new(
+        public static readonly Option<bool?> VerboseOption = new(
             name: "--verbose",
             description: "Enable verbose output"
         );
@@ -24,8 +24,7 @@ public static class Arguments
 
         public static readonly Option<string[]> OutputStyleOption = new Option<string[]>(
             name: "--output-style",
-            description: "Output styles to use (comma-separated). Valid values: console, json, markdown. Default: console for interactive mode, json+markdown for CI mode",
-            getDefaultValue: () => []
+            description: "Output styles to use (comma-separated). Valid values: console, json, markdown. Default: console for interactive mode, json,markdown for CI mode"
         ).WithValidator(
             (option, result) =>
             {
@@ -52,7 +51,7 @@ public static class Arguments
             description: "The path to the local Git repository (auto-detected from current directory if not specified)"
         );
 
-        public static readonly Option<bool> NoDeleteOption = new(
+        public static readonly Option<bool?> NoDeleteOption = new(
             name: "--no-delete",
             description: "Do not delete the temporary directories after running the benchmarks"
         );

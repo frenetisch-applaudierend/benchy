@@ -2,6 +2,7 @@ namespace Benchy.Configuration;
 
 public class ResolvedConfig
 {
+    public required DirectoryInfo TemporaryDirectory { get; init; }
     public required bool Verbose { get; init; }
     public required DirectoryInfo OutputDirectory { get; init; }
     public required string[] OutputStyle { get; init; }

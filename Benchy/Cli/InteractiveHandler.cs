@@ -1,111 +1,74 @@
 using Benchy.Configuration;
 using Benchy.Core;
 using Benchy.Infrastructure;
-using Benchy.Infrastructure.Reporting;
 
 namespace Benchy.Cli;
 
-public static class InteractiveHandler
+public class InteractiveHandler()
+    : CliHandler<InteractiveHandler.Args>(ConfigurationLoader.Mode.Interactive)
 {
-    public static void Handle(
-        bool verbose,
-        DirectoryInfo? providedOutputDirectory,
-        string[] outputStyles,
-        string[] benchmarks,
-        DirectoryInfo? repositoryPath,
-        bool noDelete,
-        string baselineRef,
-        string? targetRef
-    )
+    public class Args : CliHandlerArgs
     {
-        try
-        {
-            // Load and resolve configuration
-            var fileConfig = ConfigurationLoader.LoadConfiguration();
-            var resolvedConfig = ConfigurationLoader.ResolveConfiguration(
-                fileConfig,
-                isInteractiveMode: true,
-                verboseOverride: verbose,
-                outputDirectoryOverride: providedOutputDirectory,
-                outputStyleOverride: outputStyles.Length > 0 ? outputStyles : null,
-                benchmarksOverride: benchmarks.Length > 0 ? benchmarks : null,
-                noDeleteOverride: noDelete
-            );
-
-            Output.EnableVerbose = resolvedConfig.Verbose;
-
-            if (resolvedConfig.Benchmarks.Length == 0)
-            {
-                throw new ArgumentException(
-                    "At least one benchmark must be specified (via command line or configuration file)."
-                );
-            }
-
-            HandleInternal(resolvedConfig, repositoryPath, baselineRef, targetRef);
-        }
-        catch (Exception ex)
-        {
-            Output.Error(ex.Message);
-
-            if (verbose && ex.StackTrace is { } stackTrace)
-            {
-                Output.Error(stackTrace);
-            }
-            Environment.Exit(1);
-        }
+        public required DirectoryInfo? RepositoryPath { get; init; }
+        public required string BaselineRef { get; init; }
+        public required string? TargetRef { get; init; }
     }
 
-    private static void HandleInternal(
-        ResolvedConfig config,
+    public static void Handle(
+        bool? verbose,
+        DirectoryInfo? providedOutputDirectory,
+        string[]? outputStyles,
+        string[]? benchmarks,
         DirectoryInfo? repositoryPath,
+        bool? noDelete,
         string baselineRef,
         string? targetRef
     )
     {
-        using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: config.NoDelete);
-        Output.Verbose($"Temporary directory for comparison: {temporaryDirectory.FullName}");
+        new InteractiveHandler().Handle(
+            new Args
+            {
+                Verbose = verbose,
+                NoDelete = noDelete,
+                OutputDirectory = providedOutputDirectory?.FullName,
+                OutputStyle = outputStyles,
+                Benchmarks = benchmarks,
+                RepositoryPath = repositoryPath,
+                BaselineRef = baselineRef,
+                TargetRef = targetRef,
+            }
+        );
+    }
 
-        var outputDirectory =
-            config.OutputDirectory ?? temporaryDirectory.CreateSubdirectory("out");
-        var sourceDirectory = temporaryDirectory.CreateSubdirectory("src");
-
-        var repository = FindRepository(repositoryPath);
+    protected override BenchmarkComparisonResult Handle(Args args, ResolvedConfig config)
+    {
+        var sourceDirectory = config.TemporaryDirectory.CreateSubdirectory("src");
+        var repository = FindRepository(args.RepositoryPath);
 
         var baselineRun = CheckoutRun(
             repository: repository,
             label: "baseline",
-            reference: baselineRef,
+            reference: args.BaselineRef,
             checkoutRootDirectory: sourceDirectory,
-            outputDirectory: outputDirectory,
+            outputDirectory: config.OutputDirectory,
             benchmarks: config.Benchmarks
         );
 
         var targetRun = CheckoutRun(
             repository: repository,
             label: "target",
-            reference: targetRef,
+            reference: args.TargetRef,
             checkoutRootDirectory: sourceDirectory,
-            outputDirectory: outputDirectory,
+            outputDirectory: config.OutputDirectory,
             benchmarks: config.Benchmarks
         );
 
-        var results = BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, config.Verbose);
+        return BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, config.Verbose);
+    }
 
-        var reporter = Reporting.CreateReporter(
-            config.OutputStyle,
-            outputDirectory,
-            Console.Out,
-            useColors: true,
-            isInteractiveMode: true
-        );
-        reporter.GenerateReport(results);
-
-        if (config.NoDelete)
-        {
-            Output.Info(
-                $"Skipping cleanup of temporary directories at {temporaryDirectory.FullName}"
-            );
-        }
+    protected override DirectoryInfo GetConfigBasePath(Args args)
+    {
+        return args.RepositoryPath ?? new DirectoryInfo(Directory.GetCurrentDirectory());
     }
 
     private static GitRepository FindRepository(DirectoryInfo? repositoryPath)

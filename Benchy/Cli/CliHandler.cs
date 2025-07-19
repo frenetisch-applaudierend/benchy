@@ -1,4 +1,3 @@
-using System;
 using Benchy.Configuration;
 using Benchy.Core;
 using Benchy.Infrastructure;
@@ -11,20 +10,29 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
 {
     public void Handle(TArgs args)
     {
-        Output.EnableVerbose = args.Verbose;
+        bool verboseOutput = args.Verbose ?? false;
 
         try
         {
-            using var temporaryDirectory = TemporaryDirectory.CreateNew(keep: args.NoDelete);
+            using var temporaryDirectory = TemporaryDirectory.CreateNew();
 
             var basePath = GetConfigBasePath(args);
-            var argsConfig = args.ToConfigFromArgs();
+            var argsConfig = GetConfigFromArgs(args);
             var config = ConfigurationLoader.LoadConfiguration(
                 basePath: basePath,
                 argsConfig: argsConfig,
                 temporaryDirectory: temporaryDirectory,
                 mode: configMode
             );
+
+            Output.EnableVerbose = config.Verbose;
+            verboseOutput = config.Verbose;
+            if (config.NoDelete)
+            {
+                temporaryDirectory.KeepAfterDisposal();
+            }
+
+            PrintConfiguration(config);
 
             if (config.Benchmarks.Length == 0)
             {
@@ -44,7 +52,7 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
             );
             reporter.GenerateReport(results);
 
-            if (args.NoDelete)
+            if (config.NoDelete)
             {
                 Output.Info($"Keeping temporary directory {temporaryDirectory.FullName}");
             }
@@ -53,7 +61,7 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
         {
             Output.Error(ex.Message);
 
-            if (args.Verbose && ex.StackTrace is { } stackTrace)
+            if (verboseOutput && ex.StackTrace is { } stackTrace)
             {
                 Output.Error(stackTrace);
             }
@@ -61,12 +69,38 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
         }
     }
 
+    private static void PrintConfiguration(ResolvedConfig config)
+    {
+        Output.Verbose("Resolved Configuration:");
+        Output.Verbose($"  Output Directory: {config.OutputDirectory.FullName}");
+        Output.Verbose($"  Verbose: {config.Verbose}");
+        Output.Verbose($"  Output Style: {string.Join(", ", config.OutputStyle)}");
+        Output.Verbose($"  Benchmarks: {string.Join(", ", config.Benchmarks)}");
+        Output.Verbose($"  No Delete: {config.NoDelete}");
+    }
+
+    private static ConfigFromArgs GetConfigFromArgs(TArgs args)
+    {
+        return new()
+        {
+            Verbose = args.Verbose,
+            OutputDirectory = args.OutputDirectory,
+            OutputStyle = args.OutputStyle,
+            Benchmarks = args.Benchmarks,
+            NoDelete = args.NoDelete,
+        };
+    }
+
     protected abstract BenchmarkComparisonResult Handle(TArgs args, ResolvedConfig config);
 
     protected abstract DirectoryInfo GetConfigBasePath(TArgs args);
 }
 
-public abstract record CliHandlerArgs(bool Verbose, bool NoDelete)
+public class CliHandlerArgs
 {
-    public abstract ConfigFromArgs ToConfigFromArgs();
+    public required bool? Verbose { get; init; }
+    public required bool? NoDelete { get; init; }
+    public required string? OutputDirectory { get; init; }
+    public required string[]? OutputStyle { get; init; }
+    public required string[]? Benchmarks { get; init; }
 }

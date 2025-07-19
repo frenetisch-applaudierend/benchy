@@ -1,54 +1,37 @@
 using Benchy.Configuration;
 using Benchy.Core;
-using Benchy.Infrastructure;
-using Benchy.Infrastructure.Reporting;
 
 namespace Benchy.Cli;
 
 public class CiHandler() : CliHandler<CiHandler.Args>(ConfigurationLoader.Mode.Ci)
 {
-    public sealed record Args(
-        bool Verbose,
-        bool NoDelete,
-        string? OutputDirectory,
-        string[]? OutputStyle,
-        string[]? Benchmarks,
-        DirectoryInfo BaselineDirectory,
-        DirectoryInfo TargetDirectory
-    ) : CliHandlerArgs(Verbose, NoDelete)
+    public sealed class Args : CliHandlerArgs
     {
-        public override ConfigFromArgs ToConfigFromArgs() =>
-            new()
-            {
-                Verbose = Verbose,
-                OutputDirectory = OutputDirectory,
-                OutputStyle = OutputStyle,
-                Benchmarks = Benchmarks,
-                NoDelete = NoDelete,
-            };
+        public required DirectoryInfo BaselineDirectory { get; init; }
+        public required DirectoryInfo TargetDirectory { get; init; }
     }
 
     public static void Handle(
-        bool verbose,
+        bool? verbose,
         DirectoryInfo? providedOutputDirectory,
-        string[] outputStyles,
-        string[] benchmarks,
+        string[]? outputStyles,
+        string[]? benchmarks,
         DirectoryInfo baselineDirectory,
         DirectoryInfo targetDirectory
     )
     {
-        var args = new Args(
-            Verbose: verbose,
-            NoDelete: true,
-            OutputDirectory: providedOutputDirectory?.FullName,
-            OutputStyle: outputStyles,
-            Benchmarks: benchmarks,
-            BaselineDirectory: baselineDirectory,
-            TargetDirectory: targetDirectory
+        new CiHandler().Handle(
+            new Args
+            {
+                Verbose = verbose,
+                NoDelete = true,
+                OutputDirectory = providedOutputDirectory?.FullName,
+                OutputStyle = outputStyles,
+                Benchmarks = benchmarks,
+                BaselineDirectory = baselineDirectory,
+                TargetDirectory = targetDirectory,
+            }
         );
-        var handler = new CiHandler();
-
-        handler.Handle(args);
     }
 
     protected override BenchmarkComparisonResult Handle(Args args, ResolvedConfig config)

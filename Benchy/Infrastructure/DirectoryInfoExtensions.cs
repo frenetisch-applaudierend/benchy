@@ -15,21 +15,15 @@ public static class Directories
 
 public sealed class TemporaryDirectory : IDisposable
 {
-    private readonly DirectoryInfo directory;
-    private readonly bool keepAfterDisposal;
+    private bool keepAfterDisposal;
 
-    public string FullName => directory.FullName;
+    public DirectoryInfo Directory { get; }
 
-    private TemporaryDirectory(DirectoryInfo directory, bool keepAfterDisposal)
+    public string FullName => Directory.FullName;
+
+    private TemporaryDirectory(DirectoryInfo directory)
     {
-        this.directory = directory;
-        this.keepAfterDisposal = keepAfterDisposal;
-
-        if (keepAfterDisposal)
-        {
-            // No need to run the finalizer
-            GC.SuppressFinalize(this);
-        }
+        Directory = directory;
     }
 
     ~TemporaryDirectory()
@@ -43,7 +37,7 @@ public sealed class TemporaryDirectory : IDisposable
         Delete();
     }
 
-    public static TemporaryDirectory CreateNew(bool keep)
+    public static TemporaryDirectory CreateNew()
     {
         var now = DateTime.Now;
 
@@ -53,20 +47,28 @@ public sealed class TemporaryDirectory : IDisposable
             $"{now:yyyy-MM-dd}",
             $"{now:HHmmss}_{Path.GetRandomFileName()}"
         );
-        Directory.CreateDirectory(tempPath);
-        return new TemporaryDirectory(new DirectoryInfo(tempPath), keepAfterDisposal: keep);
+        System.IO.Directory.CreateDirectory(tempPath);
+        return new TemporaryDirectory(new DirectoryInfo(tempPath));
     }
 
     public DirectoryInfo CreateSubdirectory(string subDirectoryName)
     {
-        return directory.CreateSubdirectory(subDirectoryName);
+        return Directory.CreateSubdirectory(subDirectoryName);
+    }
+
+    public void KeepAfterDisposal()
+    {
+        keepAfterDisposal = true;
+
+        // No need to run the finalizer
+        GC.SuppressFinalize(this);
     }
 
     public void Delete()
     {
         try
         {
-            directory.Delete(true);
+            Directory.Delete(true);
         }
         catch
         {
@@ -76,7 +78,7 @@ public sealed class TemporaryDirectory : IDisposable
 
     public override string ToString()
     {
-        return directory.ToString();
+        return Directory.ToString();
     }
 
     void IDisposable.Dispose()
