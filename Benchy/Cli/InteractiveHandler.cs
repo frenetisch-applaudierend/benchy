@@ -44,6 +44,8 @@ public class InteractiveHandler()
 
     protected override BenchmarkComparisonResult Handle(Args args, ResolvedConfig config)
     {
+        CliOutput.Info("Setting up benchmark versions");
+
         var sourceDirectory = config.TemporaryDirectory.CreateSubdirectory("src");
         var repository = FindRepository(args.RepositoryPath);
 
@@ -109,7 +111,10 @@ public class InteractiveHandler()
         }
         else
         {
-            CliOutput.Info($"Checking out reference {Em(reference)} for {Em(label)}");
+            CliOutput.Info(
+                $"{Decor("🏷️  ")}Checking out reference {Em(reference)} for {Em(label)}",
+                indent: 1
+            );
             runSourceDirectory = checkoutRootDirectory.CreateSubdirectory(label);
             GitRepository.Clone(repository, runSourceDirectory.FullName).Checkout(reference);
         }

@@ -24,18 +24,18 @@ public static class BenchmarkComparer
 
     private static void PrepareRuns(IReadOnlyList<BenchmarkRun> runs, bool verbose)
     {
+        CliOutput.Info("Preparing benchmarks");
+
         foreach (var run in runs)
         {
-            CliOutput.Info($"Preparing benchmarks for {run.Name}");
             run.Prepare(verbose);
         }
     }
 
-    private static IReadOnlyList<BenchmarkRunResult> RunBenchmarks(
-        BenchmarkRun[] runs,
-        bool verbose
-    )
+    private static List<BenchmarkRunResult> RunBenchmarks(BenchmarkRun[] runs, bool verbose)
     {
+        CliOutput.Info("Running benchmarks");
+
         var results = new List<BenchmarkRunResult>(capacity: runs.Length);
 
         foreach (var run in runs)

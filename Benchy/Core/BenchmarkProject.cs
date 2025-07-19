@@ -1,5 +1,6 @@
 using Benchy.Infrastructure;
 using Benchy.Output;
+using static Benchy.Output.FormattedText;
 
 namespace Benchy.Core;
 
@@ -19,15 +20,15 @@ public sealed record BenchmarkProject
         return new BenchmarkProject(DotnetProject.Open(projectFile));
     }
 
+    public string Name => project.Name;
+
     public void Build(bool verbose)
     {
-        CliOutput.Info($"Building benchmark project: {project.Name}", indent: 1);
         project.Build(verbose);
     }
 
     public void Run(DirectoryInfo outputDirectory, bool verbose)
     {
-        CliOutput.Info($"Running benchmark project: {project.Name}", indent: 1);
         project.Run(
             [
                 "--keepFiles",
