@@ -1,154 +1,138 @@
 using System.Globalization;
 using Benchy.Core;
+using Benchy.Output;
+using static Benchy.Output.FormattedText;
 
 namespace Benchy.Infrastructure.Reporting;
 
-public class OutputReporter(TextWriter writer, bool useColors) : IReporter
+public class OutputReporter : IReporter
 {
     public void GenerateReport(BenchmarkComparisonResult result)
     {
-        writer.WriteLine();
-        WriteHeader("Benchmark Comparison Report");
-        writer.WriteLine();
-
-        if (result.Comparisons.Count == 0)
-        {
-            writer.WriteLine("No benchmarks found to compare.");
-            return;
-        }
+        CliOutput.Info("Benchmark comparison report");
 
         foreach (var comparison in result.Comparisons)
         {
-            WriteBenchmarkComparison(comparison);
-            writer.WriteLine();
+            PrintComparsion(comparison);
         }
-
-        WriteSummary(result);
     }
 
-    private void WriteBenchmarkComparison(BenchmarkComparison comparison)
+    private static void PrintComparsion(BenchmarkComparison comparison)
     {
-        WriteSubHeader(comparison.FullName);
+        CliOutput.Info($"{Decor("🏁 ")}Results for {Em(comparison.FullName)}", indent: 1);
 
-        // Performance metrics
-        WriteMetricSection("Performance Metrics");
-        WriteMetric("Mean", comparison.Statistics.Mean, "ns", lowerIsBetter: true);
-        WriteMetric("Median", comparison.Statistics.Median, "ns", lowerIsBetter: true);
-        WriteMetric("Min", comparison.Statistics.Min, "ns", lowerIsBetter: true);
-        WriteMetric("Max", comparison.Statistics.Max, "ns", lowerIsBetter: true);
-        WriteMetric("Std Dev", comparison.Statistics.StandardDeviation, "ns", lowerIsBetter: true);
-        WriteMetric("Std Error", comparison.Statistics.StandardError, "ns", lowerIsBetter: true);
-
-        // Memory metrics
-        WriteMetricSection("Memory Metrics");
-        WriteMetric(
-            "Allocated",
-            comparison.Memory.BytesAllocatedPerOperation,
-            "B",
-            lowerIsBetter: true
+        PrintDuration(
+            name: "Mean",
+            value: comparison.Statistics.Mean,
+            comparisonType: ComparisonType.LowerIsBetter
         );
-        WriteMetric("Gen0", comparison.Memory.Gen0Collections, "", lowerIsBetter: true);
-        WriteMetric("Gen1", comparison.Memory.Gen1Collections, "", lowerIsBetter: true);
-        WriteMetric("Gen2", comparison.Memory.Gen2Collections, "", lowerIsBetter: true);
+        PrintDuration(
+            name: "Error",
+            value: comparison.Statistics.StandardError,
+            comparisonType: ComparisonType.Irrelevant
+        );
+        PrintDuration(
+            name: "StdDev",
+            value: comparison.Statistics.StandardDeviation,
+            comparisonType: ComparisonType.Irrelevant
+        );
     }
 
-    private void WriteMetric<T>(
+    private static void PrintDuration(
         string name,
-        ComparisonValue<T> value,
-        string unit,
-        bool lowerIsBetter
+        ComparisonValue<double> value,
+        ComparisonType comparisonType
     )
-        where T : struct, IComparable<T>, System.Numerics.INumber<T>
     {
-        var baseline = value.Baseline?.ToString("F2", CultureInfo.InvariantCulture) ?? "N/A";
-        var target = value.Target?.ToString("F2", CultureInfo.InvariantCulture) ?? "N/A";
-        var delta = value.Delta?.ToString("F2", CultureInfo.InvariantCulture) ?? "N/A";
-        var percentage =
-            value.PercentageChange?.ToString("F1", CultureInfo.InvariantCulture) ?? "N/A";
-        var symbol = value.GetChangeSymbol(lowerIsBetter);
+        var (baseline, target) = FormatDuration(value);
 
-        if (useColors && value.Delta.HasValue)
-        {
-            var color = value.GetChangeColor(lowerIsBetter);
-            var originalColor = Console.ForegroundColor;
-            Console.ForegroundColor = color;
-            writer.WriteLine(
-                $"  {name, -12}: {baseline, 12}{unit} -> {target, 12}{unit} ({delta, 12}{unit}, {percentage, 6}%) {symbol}"
-            );
-            Console.ForegroundColor = originalColor;
-        }
-        else
-        {
-            writer.WriteLine(
-                $"  {name, -12}: {baseline, 12}{unit} -> {target, 12}{unit} ({delta, 12}{unit}, {percentage, 6}%) {symbol}"
-            );
-        }
-    }
+        var resultSymbol = GetResultSymbol(value, comparisonType);
 
-    private void WriteSummary(BenchmarkComparisonResult result)
-    {
-        WriteHeader("Summary");
+        var delta = value.Delta?.ToString("F2", CultureInfo.InvariantCulture) ?? "n/a";
+        var percentageChange =
+            value.PercentageChange?.ToString("F1", CultureInfo.InvariantCulture) ?? "n/a";
 
-        var totalBenchmarks = result.Comparisons.Count;
-        var improvements = result.Comparisons.Count(c =>
-            c.Statistics.Mean.IsImprovement(lowerIsBetter: true)
+        CliOutput.Info(
+            $"{Decor($"{resultSymbol} ")}{Em(name)}: {baseline} → {target} ({delta}, {percentageChange}%)",
+            indent: 2
         );
-        var regressions = result.Comparisons.Count(c =>
-            c.Statistics.Mean.IsRegression(lowerIsBetter: true)
-        );
-        var unchanged = totalBenchmarks - improvements - regressions;
+    }
 
-        writer.WriteLine($"Total Benchmarks: {totalBenchmarks}");
-        WriteColoredText($"Improvements: {improvements}", ConsoleColor.Green);
-        WriteColoredText($"Regressions: {regressions}", ConsoleColor.Red);
-        writer.WriteLine($"Unchanged: {unchanged}");
-
-        if (regressions > 0)
+    private static FormattedText GetResultSymbol(
+        ComparisonValue<double> value,
+        ComparisonType comparisonType
+    )
+    {
+        if (comparisonType == ComparisonType.Irrelevant)
         {
-            writer.WriteLine();
-            WriteColoredText("⚠️  Performance regressions detected!", ConsoleColor.Yellow);
+            return " ";
         }
-        else if (improvements > 0)
+
+        if (value.Baseline == null || value.Target == null)
         {
-            writer.WriteLine();
-            WriteColoredText("✅ Performance improvements detected!", ConsoleColor.Green);
+            return "○";
+        }
+
+        if (Math.Abs(value.Delta ?? 0) < double.Epsilon)
+        {
+            return "=";
+        }
+
+        return value.Delta < 0
+            ? Colored(
+                "▼",
+                comparisonType == ComparisonType.LowerIsBetter
+                    ? ConsoleColor.Green
+                    : ConsoleColor.Red
+            )
+            : Colored(
+                "▲",
+                comparisonType == ComparisonType.HigherIsBetter
+                    ? ConsoleColor.Green
+                    : ConsoleColor.Red
+            );
+    }
+
+    private static (string, string) FormatDuration(ComparisonValue<double> value)
+    {
+        if (value.Baseline == null && value.Target == null)
+        {
+            return ("n/a", "n/a");
+        }
+
+        var scaledBaseline = value.Baseline;
+        var scaledTarget = value.Target;
+
+        string[] units = ["ns", "μs", "ms", "s"];
+        var unitIndex = 0;
+
+        while (SmallerOf(scaledBaseline, scaledTarget) > 1000.0 && unitIndex < units.Length - 1)
+        {
+            scaledBaseline /= 1000;
+            scaledTarget /= 1000;
+            unitIndex++;
+        }
+
+        var unit = units[unitIndex];
+        var baseline = scaledBaseline?.ToString("F2", CultureInfo.InvariantCulture) ?? "n/a";
+        var target = scaledTarget?.ToString("F2", CultureInfo.InvariantCulture) ?? "n/a";
+        return (baseline, target);
+
+        static double SmallerOf(double? a, double? b)
+        {
+            if (a == null || a == 0.0)
+                return b!.Value;
+            if (b == null || b == 0.0)
+                return a!.Value;
+
+            return Math.Min(a.Value, b.Value);
         }
     }
 
-    private void WriteHeader(string title)
+    private enum ComparisonType
     {
-        var border = new string('=', title.Length + 4);
-        writer.WriteLine(border);
-        writer.WriteLine($"  {title}");
-        writer.WriteLine(border);
-    }
-
-    private void WriteSubHeader(string title)
-    {
-        var border = new string('-', Math.Min(title.Length + 4, 80));
-        writer.WriteLine(border);
-        writer.WriteLine($"  {title}");
-        writer.WriteLine(border);
-    }
-
-    private void WriteMetricSection(string title)
-    {
-        writer.WriteLine();
-        writer.WriteLine($"{title}:");
-    }
-
-    private void WriteColoredText(string text, ConsoleColor color)
-    {
-        if (useColors)
-        {
-            var originalColor = Console.ForegroundColor;
-            Console.ForegroundColor = color;
-            writer.WriteLine(text);
-            Console.ForegroundColor = originalColor;
-        }
-        else
-        {
-            writer.WriteLine(text);
-        }
+        Irrelevant,
+        LowerIsBetter,
+        HigherIsBetter,
     }
 }

@@ -2,28 +2,18 @@ namespace Benchy.Infrastructure.Reporting;
 
 public static class Reporting
 {
-    public static IReporter CreateReporter(
-        string[] outputStyles,
-        DirectoryInfo outputDirectory,
-        TextWriter consoleWriter,
-        bool useColors,
-        bool isInteractiveMode
-    )
+    public static IReporter CreateReporter(string[] outputStyles, DirectoryInfo outputDirectory)
     {
-        var reporters = new List<IReporter>();
+        ArgumentOutOfRangeException.ThrowIfZero(outputStyles.Length);
 
-        // Apply defaults if no styles specified
-        if (outputStyles.Length == 0)
-        {
-            outputStyles = isInteractiveMode ? ["console"] : ["json", "markdown"];
-        }
+        var reporters = new List<IReporter>();
 
         foreach (var style in outputStyles)
         {
             switch (style.ToLowerInvariant())
             {
                 case "console":
-                    reporters.Add(new OutputReporter(consoleWriter, useColors));
+                    reporters.Add(new OutputReporter());
                     break;
 
                 case "json":

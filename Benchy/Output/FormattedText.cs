@@ -11,6 +11,12 @@ public abstract class FormattedText
 
     public static FormattedText Decor(FormattedText text) => new DecorationText(text);
 
+    public static FormattedText Decor(FormattedTextInterpolatedStringHandler handler) =>
+        new DecorationText(handler.ToFormattedText());
+
+    public static FormattedText Colored(FormattedText text, ConsoleColor color) =>
+        new ColoredText(text, color);
+
     public static FormattedText Em(FormattedText text) => new ColoredText(text, ConsoleColor.Cyan);
 
     public static FormattedText Dim(FormattedText text) => new ColoredText(text, ConsoleColor.Gray);

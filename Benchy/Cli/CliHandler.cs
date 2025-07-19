@@ -49,13 +49,7 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
 
             var results = Handle(args, config);
 
-            var reporter = Reporting.CreateReporter(
-                config.OutputStyle,
-                config.OutputDirectory,
-                Console.Out,
-                useColors: true,
-                isInteractiveMode: configMode == ConfigurationLoader.Mode.Interactive
-            );
+            var reporter = Reporting.CreateReporter(config.OutputStyle, config.OutputDirectory);
             reporter.GenerateReport(results);
 
             if (config.NoDelete)

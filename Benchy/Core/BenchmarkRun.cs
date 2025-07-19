@@ -53,7 +53,7 @@ public sealed class BenchmarkRun
         foreach (var project in BenchmarkProjects)
         {
             CliOutput.Info(
-                $"{Decor("🏁 ")}Running benchmark project {Em(project.Name)} for {Em(Name)}",
+                $"{Decor("⏱️  ")}Running benchmarks in project {Em(project.Name)} for {Em(Name)}",
                 indent: 1
             );
             project.Run(OutputDirectory, verbose);
