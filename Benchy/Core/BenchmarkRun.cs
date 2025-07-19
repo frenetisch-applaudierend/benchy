@@ -1,5 +1,6 @@
 using Benchy.Infrastructure;
 using Benchy.Output;
+using static Benchy.Output.FormattedText;
 
 namespace Benchy.Core;
 
@@ -45,7 +46,7 @@ public sealed class BenchmarkRun
 
     public BenchmarkRunResult Run(bool verbose)
     {
-        CliOutput.Info($"Running benchmarks for {Name}");
+        CliOutput.Info($"Running benchmarks for {Em(Name)}");
 
         foreach (var project in BenchmarkProjects)
         {

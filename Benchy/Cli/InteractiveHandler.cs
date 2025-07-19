@@ -2,6 +2,7 @@ using Benchy.Configuration;
 using Benchy.Core;
 using Benchy.Infrastructure;
 using Benchy.Output;
+using static Benchy.Output.FormattedText;
 
 namespace Benchy.Cli;
 
@@ -108,7 +109,7 @@ public class InteractiveHandler()
         }
         else
         {
-            CliOutput.Info($"Checking out reference '{reference}' for {label}");
+            CliOutput.Info($"Checking out reference {Em(reference)} for {Em(label)}");
             runSourceDirectory = checkoutRootDirectory.CreateSubdirectory(label);
             GitRepository.Clone(repository, runSourceDirectory.FullName).Checkout(reference);
         }
