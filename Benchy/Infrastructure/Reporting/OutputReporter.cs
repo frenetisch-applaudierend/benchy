@@ -48,12 +48,11 @@ public class OutputReporter : IReporter
 
         var resultSymbol = GetResultSymbol(value, comparisonType);
 
-        var delta = value.Delta?.ToString("F2", CultureInfo.InvariantCulture) ?? "n/a";
         var percentageChange =
             value.PercentageChange?.ToString("F1", CultureInfo.InvariantCulture) ?? "n/a";
 
         CliOutput.Info(
-            $"{Decor($"{resultSymbol} ")}{Em(name)}: {baseline} → {target} ({delta}, {percentageChange}%)",
+            $"{Decor($"{resultSymbol} ")}{Em(name)}: {baseline} → {target} ({percentageChange}%)",
             indent: 2
         );
     }
@@ -114,8 +113,8 @@ public class OutputReporter : IReporter
         }
 
         var unit = units[unitIndex];
-        var baseline = scaledBaseline?.ToString("F2", CultureInfo.InvariantCulture) ?? "n/a";
-        var target = scaledTarget?.ToString("F2", CultureInfo.InvariantCulture) ?? "n/a";
+        var baseline = Format(scaledBaseline, unit);
+        var target = Format(scaledTarget, unit);
         return (baseline, target);
 
         static double SmallerOf(double? a, double? b)
@@ -126,6 +125,14 @@ public class OutputReporter : IReporter
                 return a!.Value;
 
             return Math.Min(a.Value, b.Value);
+        }
+
+        static string Format(double? value, string unit)
+        {
+            if (value == null)
+                return "n/a";
+
+            return $"{value:F2} {unit}";
         }
     }
 

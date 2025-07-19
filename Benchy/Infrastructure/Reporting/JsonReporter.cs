@@ -181,4 +181,14 @@ public class JsonReporter : IReporter
             ChangeSymbol = value.GetChangeSymbol(lowerIsBetter),
         };
     }
+
+    private static string GetChangeSymbol<T>(ComparisonValue<T> value, bool lowerIsBetter = true)
+        where T : struct, IComparable<T>, System.Numerics.INumber<T>
+    {
+        if (!value.Delta.HasValue)
+            return "?";
+        if (value.Delta.Value.Equals(T.Zero))
+            return "=";
+        return value.IsImprovement(lowerIsBetter) ? "✓" : "✗";
+    }
 }

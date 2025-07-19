@@ -245,13 +245,4 @@ public sealed record ComparisonValue<T>(T? Baseline, T? Target)
             return "=";
         return IsImprovement(lowerIsBetter) ? "✓" : "✗";
     }
-
-    public ConsoleColor GetChangeColor(bool lowerIsBetter = true)
-    {
-        if (!Delta.HasValue)
-            return ConsoleColor.Gray;
-        if (Delta.Value.Equals(T.Zero))
-            return ConsoleColor.White;
-        return IsImprovement(lowerIsBetter) ? ConsoleColor.Green : ConsoleColor.Red;
-    }
 }
