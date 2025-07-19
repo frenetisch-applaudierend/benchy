@@ -2,6 +2,7 @@ using Benchy.Configuration;
 using Benchy.Core;
 using Benchy.Infrastructure;
 using Benchy.Infrastructure.Reporting;
+using Benchy.Output;
 
 namespace Benchy.Cli;
 
@@ -25,8 +26,13 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
                 mode: configMode
             );
 
-            Output.EnableVerbose = config.Verbose;
+            CliOutput.EnableVerbose = config.Verbose;
+            CliOutput.Writer = new ConsoleOutputWriter(
+                interactive: configMode == ConfigurationLoader.Mode.Interactive
+            );
+
             verboseOutput = config.Verbose;
+
             if (config.NoDelete)
             {
                 temporaryDirectory.KeepAfterDisposal();
@@ -54,16 +60,16 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
 
             if (config.NoDelete)
             {
-                Output.Info($"Keeping temporary directory {temporaryDirectory.FullName}");
+                CliOutput.Info($"Keeping temporary directory {temporaryDirectory.FullName}");
             }
         }
         catch (Exception ex)
         {
-            Output.Error(ex.Message);
+            CliOutput.Error(ex.Message);
 
             if (verboseOutput && ex.StackTrace is { } stackTrace)
             {
-                Output.Error(stackTrace);
+                CliOutput.Error(stackTrace);
             }
             Environment.Exit(1);
         }
@@ -71,12 +77,12 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
 
     private static void PrintConfiguration(ResolvedConfig config)
     {
-        Output.Verbose("Resolved Configuration:");
-        Output.Verbose($"  Output Directory: {config.OutputDirectory.FullName}");
-        Output.Verbose($"  Verbose: {config.Verbose}");
-        Output.Verbose($"  Output Style: {string.Join(", ", config.OutputStyle)}");
-        Output.Verbose($"  Benchmarks: {string.Join(", ", config.Benchmarks)}");
-        Output.Verbose($"  No Delete: {config.NoDelete}");
+        CliOutput.Verbose("Resolved Configuration:");
+        CliOutput.Verbose($"  Output Directory: {config.OutputDirectory.FullName}");
+        CliOutput.Verbose($"  Verbose: {config.Verbose}");
+        CliOutput.Verbose($"  Output Style: {string.Join(", ", config.OutputStyle)}");
+        CliOutput.Verbose($"  Benchmarks: {string.Join(", ", config.Benchmarks)}");
+        CliOutput.Verbose($"  No Delete: {config.NoDelete}");
     }
 
     private static ConfigFromArgs GetConfigFromArgs(TArgs args)

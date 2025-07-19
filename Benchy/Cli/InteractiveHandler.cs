@@ -1,6 +1,7 @@
 using Benchy.Configuration;
 using Benchy.Core;
 using Benchy.Infrastructure;
+using Benchy.Output;
 
 namespace Benchy.Cli;
 
@@ -95,7 +96,7 @@ public class InteractiveHandler()
 
         if (string.IsNullOrEmpty(reference))
         {
-            Output.Info($"Using current working copy for {label}");
+            CliOutput.Info($"Using current working copy for {label}");
             if (repository.WorkingDirectory is not { } workingDirectory)
             {
                 throw new InvalidOperationException(
@@ -107,7 +108,7 @@ public class InteractiveHandler()
         }
         else
         {
-            Output.Info($"Checking out reference '{reference}' for {label}");
+            CliOutput.Info($"Checking out reference '{reference}' for {label}");
             runSourceDirectory = checkoutRootDirectory.CreateSubdirectory(label);
             GitRepository.Clone(repository, runSourceDirectory.FullName).Checkout(reference);
         }

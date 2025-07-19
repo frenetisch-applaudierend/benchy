@@ -1,4 +1,5 @@
 using Benchy.Infrastructure;
+using Benchy.Output;
 
 namespace Benchy.Core;
 
@@ -20,13 +21,13 @@ public sealed record BenchmarkProject
 
     public void Build(bool verbose)
     {
-        Output.Info($"Building benchmark project: {project.Name}", indent: 1);
+        CliOutput.Info($"Building benchmark project: {project.Name}", indent: 1);
         project.Build(verbose);
     }
 
     public void Run(DirectoryInfo outputDirectory, bool verbose)
     {
-        Output.Info($"Running benchmark project: {project.Name}", indent: 1);
+        CliOutput.Info($"Running benchmark project: {project.Name}", indent: 1);
         project.Run(
             [
                 "--keepFiles",

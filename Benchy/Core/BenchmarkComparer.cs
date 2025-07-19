@@ -1,4 +1,4 @@
-using Benchy.Infrastructure;
+using Benchy.Output;
 
 namespace Benchy.Core;
 
@@ -26,7 +26,7 @@ public static class BenchmarkComparer
     {
         foreach (var run in runs)
         {
-            Output.Info($"Preparing benchmarks for {run.Name}");
+            CliOutput.Info($"Preparing benchmarks for {run.Name}");
             run.Prepare(verbose);
         }
     }
