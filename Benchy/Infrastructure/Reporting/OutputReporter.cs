@@ -52,7 +52,7 @@ public class OutputReporter : IReporter
             value.PercentageChange?.ToString("F1", CultureInfo.InvariantCulture) ?? "n/a";
 
         CliOutput.Info(
-            $"{Decor($"{resultSymbol} ")}{Em(name)}: {baseline} → {target} ({percentageChange}%)",
+            $"{Decor($"{resultSymbol} ")}{Em(name)}: {baseline} → {target} ({percentageChange} %)",
             indent: 2
         );
     }
