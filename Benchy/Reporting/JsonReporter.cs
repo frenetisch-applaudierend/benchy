@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Benchy.Core;
+using Benchy.Output;
+using static Benchy.Output.FormattedText;
 
 namespace Benchy.Reporting;
 
@@ -39,6 +41,8 @@ public class JsonReporter : IReporter
         }
 
         File.WriteAllText(outputPath, json);
+
+        CliOutput.Info($"JSON report saved to {Em(outputPath)}");
     }
 
     private static object CreateSummary(BenchmarkComparisonResult result)
@@ -178,7 +182,7 @@ public class JsonReporter : IReporter
             IsImprovement = value.IsImprovement(lowerIsBetter),
             IsRegression = value.IsRegression(lowerIsBetter),
             HasSignificantChange = value.HasSignificantChange(),
-            ChangeSymbol = value.GetChangeSymbol(lowerIsBetter),
+            ChangeSymbol = GetChangeSymbol(value, lowerIsBetter),
         };
     }
 

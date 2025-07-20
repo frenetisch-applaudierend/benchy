@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text;
 using Benchy.Core;
+using Benchy.Output;
+using static Benchy.Output.FormattedText;
 
 namespace Benchy.Reporting;
 
@@ -278,5 +280,7 @@ public class MarkdownReporter(string outputPath) : IReporter
         }
 
         File.WriteAllText(outputPath, content);
+
+        CliOutput.Info($"Markdown report saved to {Em(outputPath)}");
     }
 }

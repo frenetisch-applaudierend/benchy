@@ -236,13 +236,4 @@ public sealed record ComparisonValue<T>(T? Baseline, T? Target)
 
     public bool HasSignificantChange(double thresholdPercent = 5.0) =>
         PercentageChange.HasValue && Math.Abs(PercentageChange.Value) >= thresholdPercent;
-
-    public string GetChangeSymbol(bool lowerIsBetter = true)
-    {
-        if (!Delta.HasValue)
-            return "?";
-        if (Delta.Value.Equals(T.Zero))
-            return "=";
-        return IsImprovement(lowerIsBetter) ? "✓" : "✗";
-    }
 }
