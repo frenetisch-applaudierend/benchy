@@ -1,6 +1,6 @@
 using Benchy.Core;
 
-namespace Benchy.Infrastructure.Reporting;
+namespace Benchy.Reporting;
 
 public interface IReporter
 {

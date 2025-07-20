@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Benchy.Core;
 
-namespace Benchy.Infrastructure.Reporting;
+namespace Benchy.Reporting;
 
 public class JsonReporter : IReporter
 {

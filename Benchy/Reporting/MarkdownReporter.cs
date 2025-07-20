@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using Benchy.Core;
 
-namespace Benchy.Infrastructure.Reporting;
+namespace Benchy.Reporting;
 
 public class MarkdownReporter(string outputPath) : IReporter
 {

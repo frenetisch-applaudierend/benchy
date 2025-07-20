@@ -1,4 +1,4 @@
-namespace Benchy.Infrastructure.Reporting;
+namespace Benchy.Reporting;
 
 public static class Reporting
 {

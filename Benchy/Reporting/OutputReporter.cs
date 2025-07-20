@@ -3,7 +3,7 @@ using Benchy.Core;
 using Benchy.Output;
 using static Benchy.Output.FormattedText;
 
-namespace Benchy.Infrastructure.Reporting;
+namespace Benchy.Reporting;
 
 public class OutputReporter : IReporter
 {

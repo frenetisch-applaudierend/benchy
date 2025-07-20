@@ -1,7 +1,7 @@
 using Benchy.Configuration;
 using Benchy.Core;
 using Benchy.Infrastructure;
-using Benchy.Infrastructure.Reporting;
+using Benchy.Reporting;
 using Benchy.Output;
 
 namespace Benchy.Cli;
