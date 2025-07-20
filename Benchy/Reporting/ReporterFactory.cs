@@ -1,6 +1,6 @@
 namespace Benchy.Reporting;
 
-public static class Reporting
+public static class ReporterFactory
 {
     public static IReporter CreateReporter(string[] outputStyles, DirectoryInfo outputDirectory)
     {

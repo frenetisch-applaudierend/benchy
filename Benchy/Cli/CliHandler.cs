@@ -1,8 +1,8 @@
 using Benchy.Configuration;
 using Benchy.Core;
 using Benchy.Infrastructure;
-using Benchy.Reporting;
 using Benchy.Output;
+using Benchy.Reporting;
 
 namespace Benchy.Cli;
 
@@ -49,7 +49,10 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
 
             var results = Handle(args, config);
 
-            var reporter = Reporting.CreateReporter(config.OutputStyle, config.OutputDirectory);
+            var reporter = ReporterFactory.CreateReporter(
+                config.OutputStyle,
+                config.OutputDirectory
+            );
             reporter.GenerateReport(results);
 
             if (config.NoDelete)
