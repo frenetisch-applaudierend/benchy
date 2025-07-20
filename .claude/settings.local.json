@@ -18,7 +18,9 @@
       "Bash(dotnet script:*)",
       "Bash(dotnet pack:*)",
       "Bash(benchy:*)",
-      "Bash(dotnet tool uninstall:*)"
+      "Bash(dotnet tool uninstall:*)",
+      "Bash(dotnet sln add:*)",
+      "Bash(dotnet test:*)"
     ],
     "deny": []
   }
