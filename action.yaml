@@ -13,7 +13,7 @@ inputs:
   benchy-version:
     description: 'Version of the Benchy tool to install'
     required: false
-    default: '0.3.3'
+    default: '0.3.4'
   dotnet-version:
     description: '.NET version to use'
     required: false
