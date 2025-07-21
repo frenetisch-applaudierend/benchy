@@ -1,0 +1,122 @@
+#!/bin/bash
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Function to print colored output
+print_error() { echo -e "${RED}Error: $1${NC}" >&2; }
+print_success() { echo -e "${GREEN}$1${NC}"; }
+print_warning() { echo -e "${YELLOW}$1${NC}"; }
+
+# Validate input
+if [ $# -ne 1 ]; then
+    print_error "Usage: $0 {major|minor|patch}"
+    exit 1
+fi
+
+VERSION_TYPE="$1"
+if [[ ! "$VERSION_TYPE" =~ ^(major|minor|patch)$ ]]; then
+    print_error "Invalid version type. Use: major, minor, or patch"
+    exit 1
+fi
+
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD --; then
+    print_error "There are uncommitted changes. Please commit or stash them first."
+    exit 1
+fi
+
+# Check if we're on a clean working directory
+if [ -n "$(git status --porcelain)" ]; then
+    print_error "Working directory is not clean. Please commit or stash all changes."
+    exit 1
+fi
+
+# Get current version from Benchy.csproj
+CURRENT_VERSION=$(grep -o '<Version>[^<]*</Version>' Benchy/Benchy.csproj | sed 's/<Version>\(.*\)<\/Version>/\1/')
+
+if [ -z "$CURRENT_VERSION" ]; then
+    print_error "Could not find version in Benchy/Benchy.csproj"
+    exit 1
+fi
+
+print_warning "Current version: $CURRENT_VERSION"
+
+# Parse current version
+if [[ ! "$CURRENT_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+    print_error "Invalid version format in Benchy.csproj: $CURRENT_VERSION"
+    exit 1
+fi
+
+MAJOR=${BASH_REMATCH[1]}
+MINOR=${BASH_REMATCH[2]}
+PATCH=${BASH_REMATCH[3]}
+
+# Calculate new version
+case "$VERSION_TYPE" in
+    "major")
+        NEW_MAJOR=$((MAJOR + 1))
+        NEW_MINOR=0
+        NEW_PATCH=0
+        ;;
+    "minor")
+        NEW_MAJOR=$MAJOR
+        NEW_MINOR=$((MINOR + 1))
+        NEW_PATCH=0
+        ;;
+    "patch")
+        NEW_MAJOR=$MAJOR
+        NEW_MINOR=$MINOR
+        NEW_PATCH=$((PATCH + 1))
+        ;;
+esac
+
+NEW_VERSION="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
+NEW_TAG="v${NEW_VERSION}"
+
+print_warning "New version: $NEW_VERSION"
+print_warning "New tag: $NEW_TAG"
+
+# Check if tag already exists
+if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+    print_error "Tag $NEW_TAG already exists"
+    exit 1
+fi
+
+# Update version in Benchy.csproj
+sed -i "s/<Version>$CURRENT_VERSION<\/Version>/<Version>$NEW_VERSION<\/Version>/" Benchy/Benchy.csproj
+
+# Update version in action.yaml
+sed -i "s/DEFAULT_BENCHY_VERSION: '$CURRENT_VERSION'/DEFAULT_BENCHY_VERSION: '$NEW_VERSION'/" action.yaml
+
+# Verify changes were made
+NEW_CSPROJ_VERSION=$(grep -o '<Version>[^<]*</Version>' Benchy/Benchy.csproj | sed 's/<Version>\(.*\)<\/Version>/\1/')
+NEW_ACTION_VERSION=$(grep -o "DEFAULT_BENCHY_VERSION: '[^']*'" action.yaml | sed "s/DEFAULT_BENCHY_VERSION: '\(.*\)'/\1/")
+
+if [ "$NEW_CSPROJ_VERSION" != "$NEW_VERSION" ]; then
+    print_error "Failed to update version in Benchy.csproj"
+    exit 1
+fi
+
+if [ "$NEW_ACTION_VERSION" != "$NEW_VERSION" ]; then
+    print_error "Failed to update version in action.yaml"
+    exit 1
+fi
+
+print_success "Updated Benchy.csproj version: $CURRENT_VERSION → $NEW_VERSION"
+print_success "Updated action.yaml version: $CURRENT_VERSION → $NEW_VERSION"
+
+# Commit changes
+git add Benchy/Benchy.csproj action.yaml
+git commit -m "Bump version to $NEW_VERSION"
+
+# Create and push tag
+git tag -a "$NEW_TAG" -m "Release $NEW_VERSION"
+
+print_success "Created commit and tag $NEW_TAG"
+print_warning "To complete the release, run:"
+print_warning "  git push origin main && git push origin $NEW_TAG"
