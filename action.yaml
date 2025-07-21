@@ -1,31 +1,31 @@
-name: 'Benchy Benchmark Comparison'
-description: 'Compare C# project benchmarks between two git revisions using the Benchy tool'
-author: 'Markus Gasser'
+name: "Benchy Benchmark Comparison"
+description: "Compare C# project benchmarks between two git revisions using the Benchy tool"
+author: "Markus Gasser"
 
 inputs:
   baseline-ref:
-    description: 'Git reference (commit, branch, tag) to use as baseline for comparison'
+    description: "Git reference (commit, branch, tag) to use as baseline for comparison"
     required: false
     default: ${{ github.event.repository.default_branch }}
   benchmarks:
-    description: 'Array of benchmark names to run (optional - runs all if not specified)'
+    description: "Array of benchmark names to run (optional - runs all if not specified)"
     required: false
   benchy-version:
-    description: 'Version of the Benchy tool to install'
+    description: "Version of the Benchy tool to install"
     required: false
-    default: '0.3.5'
+    default: "0.3.5"
   dotnet-version:
-    description: '.NET version to use'
+    description: ".NET version to use"
     required: false
-    default: '9.x'
+    default: "9.x"
 
 outputs:
   comparison-result:
-    description: 'Path to the benchmark comparison results'
+    description: "Path to the benchmark comparison results"
     value: ${{ steps.run-benchy.outputs.result-path }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -90,7 +90,7 @@ runs:
         script: |
           const fs = require('fs');
           const comment = fs.readFileSync('benchmark-results/benchy-summary.md', 'utf8');
-          
+
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -99,5 +99,5 @@ runs:
           });
 
 branding:
-  icon: 'bar-chart-2'
-  color: 'blue'
+  icon: "bar-chart-2"
+  color: "blue"

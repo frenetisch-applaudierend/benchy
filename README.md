@@ -13,13 +13,13 @@ A .NET tool for comparing C# project benchmarks between different git commits.
 Install as a global .NET tool:
 
 ```bash
-dotnet tool install --global benchy
+dotnet tool install --global FrenetischApplaudierend.Benchy
 ```
 
 Or install a specific version:
 
 ```bash
-dotnet tool install --global benchy --version 1.0.0
+dotnet tool install --global FrenetischApplaudierend.Benchy --version 0.3.5
 ```
 
 ## Usage
@@ -70,25 +70,30 @@ name: Benchmark Comparison
 on:
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read  # Required for checking out code
+  pull-requests: write  # Required for PR comments
 
 jobs:
   benchmark:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
     - name: Run Benchmark Comparison
       uses: frenetisch-applaudierend/benchy@v1
       with:
         baseline-ref: main
-        benchy-version: latest
-        dotnet-version: '9.x'
+        benchmarks: "BenchmarkA, BenchmarkB"  # Optional: specific benchmarks
+        benchy-version: latest # Optional: specify Benchy version
+        dotnet-version: '9.x' # Optional: specify .NET version
 ```
 
 ### Action Inputs
 
-- `baseline-ref`: Git reference for baseline comparison (default: main branch)
-- `benchy-version`: Version of Benchy tool to install (default: 'latest')
+- `baseline-ref`: Git reference for baseline comparison (default: repository default branch)
+- `benchmarks`: Array of benchmark names to run as comma-separated string (optional - runs all if not specified)
+- `benchy-version`: Version of Benchy tool to install (default: '0.3.5', or use 'latest')
 - `dotnet-version`: .NET version to use (default: '9.x')
 
 ### Action Outputs
@@ -100,3 +105,10 @@ jobs:
 - .NET 9.0 or later
 - Git repository with BenchmarkDotNet projects
 - BenchmarkDotNet configured in your C# projects
+- **Important**: Your benchmark project's `Main` method must pass command line arguments to BenchmarkRunner:
+  ```csharp
+  static void Main(string[] args)
+  {
+      BenchmarkRunner.Run<MyBenchmark>(args: args);
+  }
+  ```

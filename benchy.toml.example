@@ -1,13 +1,10 @@
 # Benchy Configuration File Example
 # Copy this file to 'benchy.toml' and customize for your project
 
-# Global settings that apply to all commands
-[global]
+# Global settings that apply to all commands (top-level properties)
 verbose = false
-output-directory = "./benchmark-results"
-output-style = ["console"]
-
-# Default benchmarks (can be overridden per command)
+output_directory = "./benchmark-results"
+output_style = ["console"]
 benchmarks = [
     "MyProject.Benchmarks",
     "MyProject.PerformanceTests"
@@ -16,23 +13,19 @@ benchmarks = [
 # Interactive mode specific settings
 [interactive]
 # Override global settings for interactive mode
-output-style = ["console"]
-no-delete = false
-
-# Default benchmarks for interactive mode (inherits from global if not specified)
+output_style = ["console"]
+no_delete = false
 benchmarks = [
     "MyProject.Benchmarks",
     "MyProject.PerformanceTests",
     "MyProject.InteractiveBenchmarks"
 ]
 
-# CI mode specific settings  
+# CI mode specific settings
 [ci]
 # Override global settings for CI mode
-output-style = ["json", "markdown"]
+output_style = ["json", "markdown"]
 verbose = true
-
-# Different benchmarks for CI (e.g., longer-running tests)
 benchmarks = [
     "MyProject.Benchmarks", 
     "MyProject.StabilityTests",
