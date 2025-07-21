@@ -1,6 +1,7 @@
 using Benchy.Infrastructure;
 using Benchy.Output;
 using Tomlyn;
+using static Benchy.Output.FormattedText;
 
 namespace Benchy.Configuration;
 
@@ -22,10 +23,13 @@ public static class ConfigurationLoader
         var filePath = FindConfigurationFile(basePath);
         if (filePath == null || !filePath.Exists)
         {
+            CliOutput.Verbose(
+                $"No configuration file found in '{Em(basePath.FullName)}'. Using defaults."
+            );
             return null;
         }
 
-        CliOutput.Verbose($"Found configuration file at '{filePath.FullName}'");
+        CliOutput.Verbose($"Found configuration file at '{Em(filePath.FullName)}'");
 
         try
         {
@@ -124,6 +128,7 @@ public static class ConfigurationLoader
         static FileInfo? TryFile(DirectoryInfo dir, string fileName)
         {
             var fullPath = Path.Combine(dir.FullName, fileName);
+            CliOutput.Verbose($"Checking for configuration file at '{Em(fullPath)}'");
             return File.Exists(fullPath) ? new FileInfo(fullPath) : null;
         }
     }
