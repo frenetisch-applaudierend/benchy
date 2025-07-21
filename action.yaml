@@ -13,7 +13,7 @@ inputs:
   benchy-version:
     description: 'Version of the Benchy tool to install'
     required: false
-    default: 'latest'
+    default: 'default'
   dotnet-version:
     description: '.NET version to use'
     required: false
@@ -37,6 +37,27 @@ runs:
       run: |
         if [ "${{ inputs.benchy-version }}" = "latest" ]; then
           dotnet tool install --global FrenetischApplaudierend.Benchy
+        elif [ "${{ inputs.benchy-version }}" = "default" ]; then
+          # Extract version from action ref (GITHUB_ACTION_REF contains the tag/ref used)
+          ACTION_VERSION="${GITHUB_ACTION_REF#refs/tags/}"
+          if [[ $ACTION_VERSION =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            # Full semantic version: use exact major.minor.patch
+            BENCHY_VERSION="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+            dotnet tool install --global FrenetischApplaudierend.Benchy --version $BENCHY_VERSION
+          elif [[ $ACTION_VERSION =~ ^v([0-9]+)\.([0-9]+)$ ]]; then
+            # Major.minor version: use latest patch in that minor version
+            BENCHY_VERSION="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.*"
+            dotnet tool install --global FrenetischApplaudierend.Benchy --version $BENCHY_VERSION
+          elif [[ $ACTION_VERSION =~ ^v([0-9]+)$ ]]; then
+            # Major version only: use latest in that major version
+            BENCHY_VERSION="${BASH_REMATCH[1]}.*"
+            dotnet tool install --global FrenetischApplaudierend.Benchy --version $BENCHY_VERSION
+          else
+            # Fail if version can't be parsed
+            echo "Error: Unable to determine Benchy version from action reference '$ACTION_VERSION'"
+            echo "Expected format: v1.2.3, v1.2, or v1"
+            exit 1
+          fi
         else
           dotnet tool install --global FrenetischApplaudierend.Benchy --version ${{ inputs.benchy-version }}
         fi

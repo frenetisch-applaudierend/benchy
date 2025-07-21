@@ -9,6 +9,10 @@ jobs:
   update-tags:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Update major and minor version tags
         run: |
           TAG_NAME=${GITHUB_REF#refs/tags/}
