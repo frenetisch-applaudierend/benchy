@@ -55,11 +55,31 @@ public sealed record BenchmarkReport(
 
     public static IEnumerable<BenchmarkReport> LoadReports(DirectoryInfo directory)
     {
+        if (!directory.Exists)
+        {
+            throw NoBenchmarkResultsException(directory);
+        }
+
         var reportFiles = directory.GetFiles(
             "*report-full-compressed.json",
             SearchOption.TopDirectoryOnly
         );
+
+        if (reportFiles.Length == 0)
+        {
+            throw NoBenchmarkResultsException(directory);
+        }
+
         return reportFiles.Select(LoadReport);
+
+        static Exception NoBenchmarkResultsException(DirectoryInfo directory)
+        {
+            return new InvalidOperationException(
+                $"No benchmark results found in {directory.FullName}. "
+                    + "Make sure your benchmark project passes command line arguments to BenchmarkRunner.Run<>(), "
+                    + "for example: BenchmarkRunner.Run<MyBenchmark>(args: args);"
+            );
+        }
     }
 
     public static BenchmarkReport LoadReport(FileInfo file)
