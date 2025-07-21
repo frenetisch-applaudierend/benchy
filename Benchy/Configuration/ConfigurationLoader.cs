@@ -1,4 +1,5 @@
 using Benchy.Infrastructure;
+using Benchy.Output;
 using Tomlyn;
 
 namespace Benchy.Configuration;
@@ -23,6 +24,8 @@ public static class ConfigurationLoader
         {
             return null;
         }
+
+        CliOutput.Verbose($"Found configuration file at '{filePath.FullName}'");
 
         try
         {

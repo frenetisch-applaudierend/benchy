@@ -1,0 +1,29 @@
+name: Update Version Tags
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  update-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update major and minor version tags
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "Processing tag: $TAG_NAME"
+          
+          # Extract version components
+          MAJOR_MINOR=$(echo $TAG_NAME | sed 's/\.[0-9]*$//')  # v1.2.3 -> v1.2
+          MAJOR=$(echo $TAG_NAME | sed 's/\.[0-9]*\.[0-9]*$//')  # v1.2.3 -> v1
+          
+          echo "Creating or updating tag: $MAJOR"
+          git tag -f $MAJOR $TAG_NAME
+          git push origin $MAJOR --force
+
+          echo "Creating or updating tag: $MAJOR_MINOR"
+          git tag -f $MAJOR_MINOR $TAG_NAME
+          git push origin $MAJOR_MINOR --force
+          
+          echo "Version tags updated successfully"

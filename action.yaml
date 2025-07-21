@@ -7,6 +7,9 @@ inputs:
     description: 'Git reference (commit, branch, tag) to use as baseline for comparison'
     required: false
     default: ${{ github.event.repository.default_branch }}
+  benchmarks:
+    description: 'Array of benchmark names to run (optional - runs all if not specified)'
+    required: false
   benchy-version:
     description: 'Version of the Benchy tool to install'
     required: false
@@ -61,8 +64,20 @@ runs:
       id: run-benchy
       shell: bash
       run: |
+        # Build benchmark arguments
+        BENCHMARK_ARGS=""
+        if [ -n "${{ inputs.benchmarks }}" ]; then
+          # Convert input string to array and build --benchmark args
+          IFS=',' read -ra BENCHMARKS <<< "${{ inputs.benchmarks }}"
+          for benchmark in "${BENCHMARKS[@]}"; do
+            # Trim whitespace
+            benchmark=$(echo "$benchmark" | xargs)
+            BENCHMARK_ARGS="$BENCHMARK_ARGS --benchmark \"$benchmark\""
+          done
+        fi
+
         # Run the benchmark comparison
-        benchy ci baseline-workspace current-workspace --output-directory benchmark-results
+        eval "benchy ci baseline-workspace current-workspace --output-directory benchmark-results $BENCHMARK_ARGS"
 
         # Set output for potential artifacts
         echo "result-path=$(pwd)/benchmark-results" >> $GITHUB_OUTPUT
