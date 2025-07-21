@@ -15,6 +15,11 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
 
         try
         {
+            CliOutput.EnableVerbose = verboseOutput;
+            CliOutput.Writer = new ConsoleOutputWriter(
+                interactive: configMode == ConfigurationLoader.Mode.Interactive
+            );
+
             using var temporaryDirectory = TemporaryDirectory.CreateNew();
 
             var basePath = GetConfigBasePath(args);
@@ -27,10 +32,6 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
             );
 
             CliOutput.EnableVerbose = config.Verbose;
-            CliOutput.Writer = new ConsoleOutputWriter(
-                interactive: configMode == ConfigurationLoader.Mode.Interactive
-            );
-
             verboseOutput = config.Verbose;
 
             if (config.NoDelete)
