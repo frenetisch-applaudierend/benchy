@@ -4,7 +4,7 @@ author: 'Markus Gasser'
 
 # Default version for 'default' benchy-version input
 env:
-  DEFAULT_BENCHY_VERSION: '0.3.0'
+  DEFAULT_BENCHY_VERSION: '0.3.1'
 
 inputs:
   baseline-ref:
