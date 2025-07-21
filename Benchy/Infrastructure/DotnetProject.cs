@@ -10,17 +10,29 @@ public class DotnetProject
 
     public static DotnetProject Open(FileInfo projectFile)
     {
-        if (!projectFile.Extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+        foreach (var possibleLocation in GetPossibleProjectLocations(projectFile))
         {
-            projectFile = new FileInfo(projectFile.FullName + ".csproj");
+            if (possibleLocation.Exists)
+            {
+                return new DotnetProject(possibleLocation);
+            }
         }
 
-        if (!projectFile.Exists)
-        {
-            throw new FileNotFoundException($"Project file not found: {projectFile.FullName}");
-        }
+        throw new FileNotFoundException($"Project file not found: {projectFile.FullName}");
 
-        return new DotnetProject(projectFile);
+        static IEnumerable<FileInfo> GetPossibleProjectLocations(FileInfo projectFile)
+        {
+            if (projectFile.Extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+            {
+                yield return projectFile;
+                yield break;
+            }
+
+            yield return new FileInfo(projectFile.FullName + ".csproj");
+            yield return new FileInfo(
+                Path.Combine(projectFile.FullName, projectFile.Name + ".csproj")
+            );
+        }
     }
 
     private DotnetProject(FileInfo projectFile)
