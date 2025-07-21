@@ -62,7 +62,7 @@ runs:
       shell: bash
       run: |
         # Run the benchmark comparison
-        dotnet benchy baseline-workspace current-workspace --output-directory benchmark-results
+        benchy ci baseline-workspace current-workspace --output-directory benchmark-results
 
         # Set output for potential artifacts
         echo "result-path=$(pwd)/benchmark-results" >> $GITHUB_OUTPUT
