@@ -10,7 +10,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>benchy</ToolCommandName>
     <PackageId>FrenetischApplaudierend.Benchy</PackageId>
-    <Version>0.2.8</Version>
+    <Version>0.2.9</Version>
     <Authors>Markus Gasser</Authors>
     <Description>A C# benchmark comparison tool for analyzing performance across git references</Description>
     <PackageTags>benchmark;performance;dotnet;cli;tool;git;comparison</PackageTags>
