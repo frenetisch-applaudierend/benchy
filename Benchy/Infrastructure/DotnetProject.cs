@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Benchy.Output;
 
 namespace Benchy.Infrastructure;
 
@@ -62,6 +63,8 @@ public class DotnetProject
 
     private void ExecuteCommand(string command, string arguments, string errorMessage, bool verbose)
     {
+        CliOutput.Verbose($"Executing: dotnet {command} {arguments}");
+
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
