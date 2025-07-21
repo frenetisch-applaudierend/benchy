@@ -32,7 +32,7 @@ jobs:
       run: dotnet restore
       
     - name: Build project
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build -p:PackageVersion=${{ steps.version.outputs.version }} --configuration Release --no-restore
       
     - name: Test project
       run: dotnet test --configuration Release --no-build --verbosity normal
