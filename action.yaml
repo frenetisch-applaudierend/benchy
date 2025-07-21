@@ -43,7 +43,7 @@ runs:
           dotnet tool install --global FrenetischApplaudierend.Benchy
         elif [ "${{ inputs.benchy-version }}" = "default" ]; then
           # Use the default version specified in the action
-          dotnet tool install --global FrenetischApplaudierend.Benchy --version $DEFAULT_BENCHY_VERSION
+          dotnet tool install --global FrenetischApplaudierend.Benchy --version ${{ env.DEFAULT_BENCHY_VERSION }}
         else
           dotnet tool install --global FrenetischApplaudierend.Benchy --version ${{ inputs.benchy-version }}
         fi
