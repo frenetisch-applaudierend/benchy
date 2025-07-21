@@ -33,9 +33,9 @@ runs:
       shell: bash
       run: |
         if [ "${{ inputs.benchy-version }}" = "latest" ]; then
-          dotnet tool install --global benchy
+          dotnet tool install --global FrenetischApplaudierend.Benchy
         else
-          dotnet tool install --global benchy --version ${{ inputs.benchy-version }}
+          dotnet tool install --global FrenetischApplaudierend.Benchy --version ${{ inputs.benchy-version }}
         fi
 
     - name: Create workspace directories
