@@ -111,11 +111,11 @@ fi
 sed -i "s/<Version>$CURRENT_VERSION<\/Version>/<Version>$NEW_VERSION<\/Version>/" Benchy/Benchy.csproj
 
 # Update version in action.yaml
-sed -i "s/DEFAULT_BENCHY_VERSION: '$CURRENT_VERSION'/DEFAULT_BENCHY_VERSION: '$NEW_VERSION'/" action.yaml
+sed -i "s/default: '$CURRENT_VERSION'/default: '$NEW_VERSION'/" action.yaml
 
 # Verify changes were made
 NEW_CSPROJ_VERSION=$(grep -o '<Version>[^<]*</Version>' Benchy/Benchy.csproj | sed 's/<Version>\(.*\)<\/Version>/\1/')
-NEW_ACTION_VERSION=$(grep -o "DEFAULT_BENCHY_VERSION: '[^']*'" action.yaml | sed "s/DEFAULT_BENCHY_VERSION: '\(.*\)'/\1/")
+NEW_ACTION_VERSION=$(grep -A 2 "benchy-version:" action.yaml | grep "default:" | sed "s/.*default: '\(.*\)'/\1/")
 
 if [ "$NEW_CSPROJ_VERSION" != "$NEW_VERSION" ]; then
     print_error "Failed to update version in Benchy.csproj"

@@ -2,10 +2,6 @@ name: 'Benchy Benchmark Comparison'
 description: 'Compare C# project benchmarks between two git revisions using the Benchy tool'
 author: 'Markus Gasser'
 
-# Default version for 'default' benchy-version input
-env:
-  DEFAULT_BENCHY_VERSION: '0.3.2'
-
 inputs:
   baseline-ref:
     description: 'Git reference (commit, branch, tag) to use as baseline for comparison'
@@ -17,7 +13,7 @@ inputs:
   benchy-version:
     description: 'Version of the Benchy tool to install'
     required: false
-    default: 'default'
+    default: '0.3.2'
   dotnet-version:
     description: '.NET version to use'
     required: false
@@ -41,9 +37,6 @@ runs:
       run: |
         if [ "${{ inputs.benchy-version }}" = "latest" ]; then
           dotnet tool install --global FrenetischApplaudierend.Benchy
-        elif [ "${{ inputs.benchy-version }}" = "default" ]; then
-          # Use the default version specified in the action
-          dotnet tool install --global FrenetischApplaudierend.Benchy --version ${{ env.DEFAULT_BENCHY_VERSION }}
         else
           dotnet tool install --global FrenetischApplaudierend.Benchy --version ${{ inputs.benchy-version }}
         fi
