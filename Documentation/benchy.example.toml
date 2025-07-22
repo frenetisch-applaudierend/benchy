@@ -7,7 +7,7 @@ output_directory = "./benchmark-results"
 output_style = ["console"]
 benchmarks = [
     "MyProject.Benchmarks",
-    "MyProject.PerformanceTests"
+    "MyProject.PerformanceTests",
 ]
 
 # Interactive mode specific settings
@@ -18,7 +18,7 @@ no_delete = false
 benchmarks = [
     "MyProject.Benchmarks",
     "MyProject.PerformanceTests",
-    "MyProject.InteractiveBenchmarks"
+    "MyProject.InteractiveBenchmarks",
 ]
 
 # CI mode specific settings
@@ -27,7 +27,7 @@ benchmarks = [
 output_style = ["json", "markdown"]
 verbose = true
 benchmarks = [
-    "MyProject.Benchmarks", 
+    "MyProject.Benchmarks",
     "MyProject.StabilityTests",
-    "MyProject.RegressionTests"
+    "MyProject.RegressionTests",
 ]
