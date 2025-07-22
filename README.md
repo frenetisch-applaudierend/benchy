@@ -1,14 +1,15 @@
 # Benchy
 
-A .NET tool for comparing C# project benchmarks between different git commits.
+A .NET tool for comparing [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet)
+benchmarks between different git commits. It is intended to keep track of performance changes
+in your codebase, making it easier to identify regressions or improvements.
 
 ## Features
 
-- Compare BenchmarkDotNet results between git commits
 - Interactive mode for local development
-- CI mode for automated testing
+- CI mode with associated github action for automated testing
 
-## Installation
+## Local Installation
 
 Install as a global .NET tool:
 
@@ -16,54 +17,107 @@ Install as a global .NET tool:
 dotnet tool install --global FrenetischApplaudierend.Benchy
 ```
 
-Or install a specific version:
+And run it with:
 
 ```bash
-dotnet tool install --global FrenetischApplaudierend.Benchy --version 0.3.5
+benchy --help
 ```
 
-## Usage
-
-### Interactive Mode
-
-Compare benchmarks between commits in a local repository:
+Or install locally in your project:
 
 ```bash
-# Compare current working directory against main branch
-benchy compare main
-
-# Compare two specific commits
-benchy compare abc123 def456
-
-# Specify repository path and benchmark projects
-benchy compare main --repo /path/to/repo --benchmark MyBenchmarks
-
-# Keep temporary directories for debugging
-benchy compare main --no-delete
+dotnet tool install --local FrenetischApplaudierend.Benchy
 ```
 
-### CI Mode
-
-For pre-checked-out directories in CI environments:
+And run it with:
 
 ```bash
-# Compare two directories containing different versions
-benchy ci /path/to/baseline /path/to/target
-
-# With specific benchmark selection
-benchy ci baseline-dir target-dir --benchmark MyBenchmarks
+dotnet benchy --help
 ```
+
+## Interactive Usage
+
+To use the tool interactively, run `benchy compare <baseline> [<target>] [options]`.
+`baseline` and `target` are git references (branches, tags, commits). If no target is specified,
+the current working copy (including uncommitted changes) is used as the target.
 
 ### Options
 
-- `--verbose`: Enable verbose output
-- `--benchmark`, `-b`: Specify benchmark project(s) to run
-- `--repository-path`, `--repo`, `-r`: Path to Git repository (auto-detected if not specified)
-- `--no-delete`: Don't delete temporary directories after completion
+> [!NOTE]
+> Only the most relevant options are shown here. For a full list, run `benchy compare --help`.
+
+| Option                          | Description                                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------- |
+| `--verbose`                     | Enable verbose output                                                                   |
+| `-b`, `--benchmark <benchmark>` | The benchmark project(s) to run. Specify the flag multiple times for multiple projects. |
+
+Benchmarks can be either specified as the path to a `.csproj` file or as the name of a project,
+i.e. `MyBenchmarkProject.csproj` or `MyBenchmarkProject`. In the latter case, Benchy will look
+for the project in `<Repo>/MyBenchmarkProject.csproj` and `<Repo>/MyBenchmarkProject/MyBenchmarkProject.csproj`.
+
+> [!IMPORTANT]
+> Benchy configures the specified benchmark projects with command line arguments, so in order to
+> support Benchy, your benchmark project's `Main` method must pass command line arguments to
+> `BenchmarkRunner`:
+> ```csharp
+> static void Main(string[] args)
+> {
+>     BenchmarkRunner.Run<MyBenchmark>(args: args);
+> }
+> ```
+
+These options can also be specified in a [configuration file](#configuration-file).
+
+### Examples
+
+```bash
+# Compare two branches with specified benchmarks
+benchy compare main my-feature-branch \
+  --benchmark Path/To/MyBenchmarkProject.csproj \
+  --benchmark AnotherBenchmark
+
+# Compare the current working copy to the main branch, read benchmarks from config file
+benchy compare main
+```
 
 ## GitHub Action
 
-Use the GitHub Action to automatically compare benchmarks in pull requests:
+To use Benchy as a GitHub Action, use: `frenetisch-applaudierend/benchy@v1` from the
+[actions marketplace](https://github.com/marketplace/actions/benchy-benchmark-comparison) in
+your workflow file.
+
+The action compares the benchmarks between the revision in the current branch (i.e. the
+pull request) and a baseline reference. After running the benchmarks, it puts the
+comparison as a comment on the pull request.
+
+### Action Inputs
+
+| Input            | Description                                               |
+| ---------------- | --------------------------------------------------------- |
+| `baseline-ref`   | Git reference for baseline comparison                     |
+| `benchmarks`     | Array of benchmark names to run as comma-separated string |
+| `benchy-version` | Version of Benchy tool to install or use 'latest'         |
+| `dotnet-version` | .NET version to use for benchmarks                        |
+
+All inputs are optional. Defaults are as follows:
+
+- `baseline-ref`: The repository default branch
+- `benchmarks`: Benchmarks are read from the configuration file if missing
+- `benchy-version`: Same as the action version
+- `dotnet-version`: 9.x (latest LTS)
+
+### Action Outputs
+
+- `comparison-result`: Path to the benchmark comparison results directory
+
+### Required Permissions
+
+The action requires the following permissions on the github token:
+
+- `contents: read`: To check out different revisions of the code
+- `pull-requests: write`: To post comments on the pull request
+
+### Example Workflow
 
 ```yaml
 name: Benchmark Comparison
@@ -83,32 +137,72 @@ jobs:
     - name: Run Benchmark Comparison
       uses: frenetisch-applaudierend/benchy@v1
       with:
-        baseline-ref: main
-        benchmarks: "BenchmarkA, BenchmarkB"  # Optional: specific benchmarks
-        benchy-version: latest # Optional: specify Benchy version
-        dotnet-version: '9.x' # Optional: specify .NET version
+        benchmarks: "Path/To/MyBenchmarkProject.csproj, AnotherBenchmark"
 ```
 
-### Action Inputs
+## CI Mode
 
-- `baseline-ref`: Git reference for baseline comparison (default: repository default branch)
-- `benchmarks`: Array of benchmark names to run as comma-separated string (optional - runs all if not specified)
-- `benchy-version`: Version of Benchy tool to install (default: '0.3.5', or use 'latest')
-- `dotnet-version`: .NET version to use (default: '9.x')
+Benchy has a different command to support CI scenarios, like the GitHub Action. The main
+difference is that in this mode, the tool operates on pre-checked out directories instead
+of git references. See `benchy ci --help` for more information on how to use it.
 
-### Action Outputs
+## Configuration File
 
-- `comparison-result`: Path to the benchmark comparison results directory
+To specify benchmarks and other options that should always be the same, you can create a
+configuration file in [TOML format](https://toml.io). Benchy will automatically read the
+configuration from the following locations (first match is used):
 
-## Requirements
+- `<Repo>/.config/benchy.toml`
+- `<Repo>/benchy.toml`
+- `<Repo>/.benchy.toml`
 
-- .NET 9.0 or later
-- Git repository with BenchmarkDotNet projects
-- BenchmarkDotNet configured in your C# projects
-- **Important**: Your benchmark project's `Main` method must pass command line arguments to BenchmarkRunner:
-  ```csharp
-  static void Main(string[] args)
-  {
-      BenchmarkRunner.Run<MyBenchmark>(args: args);
-  }
-  ```
+### Available Configuration Options
+
+The configuration file supports hierarchical settings with global defaults and mode-specific
+overrides. Command line arguments take the highest precedence, followed by mode-specific
+settings, then global settings.
+
+| Option             | Type             | Description                                        |
+| ------------------ | ---------------- | -------------------------------------------------- |
+| `verbose`          | boolean          | Enable verbose output                              |
+| `output_directory` | string           | Directory to output benchmark results              |
+| `output_style`     | array of strings | Output formats: `console`, `json`, `markdown`      |
+| `benchmarks`       | array of strings | Benchmark projects to run                          |
+| `no_delete`        | boolean          | Don't delete temporary directories (for debugging) |
+
+### Mode-Specific Configuration
+
+You can specify different settings for Interactive and CI modes using `[interactive]` and `[ci]`
+sections. These override the global settings for their respective modes.
+
+### Example Configuration File
+
+```toml
+# Global settings (apply to all modes unless overridden)
+verbose = false
+output_directory = "./benchmark-results"
+output_style = ["console"]
+benchmarks = [
+    "MyProject.Benchmarks",
+    "MyProject.PerformanceTests"
+]
+
+# Settings specific to interactive mode (benchy compare)
+[interactive]
+output_style = ["console"]
+no_delete = false
+benchmarks = [
+    "MyProject.Benchmarks",
+    "MyProject.InteractiveBenchmarks"
+]
+
+# Settings specific to CI mode (benchy ci / GitHub Action)
+[ci]
+output_style = ["json", "markdown"]
+verbose = true
+no_delete = true
+benchmarks = [
+    "MyProject.Benchmarks", 
+    "MyProject.StabilityTests"
+]
+```
