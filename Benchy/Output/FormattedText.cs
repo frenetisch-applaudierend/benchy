@@ -9,10 +9,18 @@ public abstract class FormattedText
     public static FormattedText operator +(FormattedText left, FormattedText right) =>
         new ConcatenatedText(left, right);
 
-    public static FormattedText Decor(FormattedText text) => new DecorationText(text);
+    public static FormattedText Decor(FormattedText text) => new DecorationText(text, null);
+
+    public static FormattedText Decor(FormattedText text, string alternative) =>
+        new DecorationText(text, alternative);
 
     public static FormattedText Decor(FormattedTextInterpolatedStringHandler handler) =>
-        new DecorationText(handler.ToFormattedText());
+        new DecorationText(handler.ToFormattedText(), null);
+
+    public static FormattedText Decor(
+        FormattedTextInterpolatedStringHandler handler,
+        string alternative
+    ) => new DecorationText(handler.ToFormattedText(), alternative);
 
     public static FormattedText Colored(FormattedText text, ConsoleColor color) =>
         new ColoredText(text, color);
@@ -32,13 +40,17 @@ file sealed class PlainText(string text) : FormattedText
     }
 }
 
-file sealed class DecorationText(FormattedText text) : FormattedText
+file sealed class DecorationText(FormattedText text, string? alternative) : FormattedText
 {
     public override void WriteTo(TextWriter writer, bool interactive)
     {
         if (interactive)
         {
             text.WriteTo(writer, interactive);
+        }
+        else if (alternative is not null)
+        {
+            writer.Write(alternative);
         }
     }
 }

@@ -7,6 +7,30 @@ namespace Benchy.Reporting;
 
 public class OutputReporter : IReporter
 {
+    private static readonly FormattedText Arrow = Decor("▷▷ ", "=>");
+    private static readonly FormattedText ImprovementLower = Decor(
+        Colored("▼", ConsoleColor.Green),
+        "[IMP]"
+    );
+    private static readonly FormattedText ImprovementHigher = Decor(
+        Colored("▲", ConsoleColor.Green),
+        "[IMP]"
+    );
+    private static readonly FormattedText RegressionLower = Decor(
+        Colored("▼", ConsoleColor.Red),
+        "[REG]"
+    );
+    private static readonly FormattedText RegressionHigher = Decor(
+        Colored("▲", ConsoleColor.Red),
+        "[REG]"
+    );
+    private static readonly FormattedText Stable = Decor(
+        Colored("≈", ConsoleColor.DarkGreen),
+        "[STA]"
+    );
+    private static readonly FormattedText Irrelevant = Decor(" ", "     ");
+    private static readonly FormattedText Uncompared = Decor("○", "     ");
+
     public void GenerateReport(BenchmarkComparisonResult result)
     {
         CliOutput.Info("Benchmark comparison report");
@@ -56,10 +80,13 @@ public class OutputReporter : IReporter
         var resultSymbol = GetResultSymbol(value, comparisonType, significanceThreshold);
 
         var percentageChange =
-            value.PercentageChange?.ToString("F1", CultureInfo.InvariantCulture) ?? "n/a";
+            comparisonType != ComparisonType.Irrelevant
+            && value.PercentageChange is { } percentageChangeValue
+                ? $" ({percentageChangeValue:F1} %)"
+                : "";
 
         CliOutput.Info(
-            $"{Decor($"{resultSymbol} ")}{Em(name)}: {baseline} → {target} ({percentageChange} %)",
+            $"{resultSymbol} {Em(name)}: {baseline} {Arrow} {target}{percentageChange}",
             indent: 2
         );
     }
@@ -71,61 +98,25 @@ public class OutputReporter : IReporter
     )
     {
         if (comparisonType == ComparisonType.Irrelevant)
-        {
-            return " ";
-        }
+            return Irrelevant;
 
         if (value.Baseline == null || value.Target == null)
-        {
-            return "○";
-        }
+            return Uncompared;
 
-        if (Math.Abs(value.Delta ?? 0) < double.Epsilon)
-        {
-            return "=";
-        }
+        if (!value.HasSignificantChange(significanceThreshold * 100))
+            return Stable;
 
-        var isSignificant = value.HasSignificantChange(significanceThreshold * 100);
-        var isImprovement =
-            comparisonType == ComparisonType.LowerIsBetter ? value.Delta < 0 : value.Delta > 0;
-
-        if (value.Delta < 0)
+        if (value.Delta < 0.0)
         {
-            // Downward arrow
-            if (isSignificant)
-            {
-                // Colored solid arrow for significant changes
-                return Colored(
-                    "▼",
-                    comparisonType == ComparisonType.LowerIsBetter
-                        ? ConsoleColor.Green
-                        : ConsoleColor.Red
-                );
-            }
-            else
-            {
-                // Outlined arrow for non-significant changes
-                return "▽"; // Using outlined triangle pointing down
-            }
+            return comparisonType == ComparisonType.LowerIsBetter
+                ? ImprovementLower
+                : RegressionLower;
         }
         else
         {
-            // Upward arrow
-            if (isSignificant)
-            {
-                // Colored solid arrow for significant changes
-                return Colored(
-                    "▲",
-                    comparisonType == ComparisonType.HigherIsBetter
-                        ? ConsoleColor.Green
-                        : ConsoleColor.Red
-                );
-            }
-            else
-            {
-                // Outlined arrow for non-significant changes
-                return "△"; // Using outlined triangle pointing up
-            }
+            return comparisonType == ComparisonType.HigherIsBetter
+                ? ImprovementHigher
+                : RegressionHigher;
         }
     }
 
