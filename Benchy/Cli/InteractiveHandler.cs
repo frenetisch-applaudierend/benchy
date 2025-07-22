@@ -99,7 +99,10 @@ public class InteractiveHandler()
 
         if (string.IsNullOrEmpty(reference))
         {
-            CliOutput.Info($"Using current working copy for {label}");
+            CliOutput.Info(
+                $"{Decor("🏷️  ")}Using {Em("current working copy")} for {Em(label)}",
+                indent: 1
+            );
             if (repository.WorkingDirectory is not { } workingDirectory)
             {
                 throw new InvalidOperationException(

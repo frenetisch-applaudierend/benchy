@@ -66,14 +66,18 @@ public static class ConfigurationLoader
             argsConfig.OutputDirectory
             ?? modeConfig?.OutputDirectory
             ?? globalConfig?.OutputDirectory;
-        var outputStyle = ResolveOutputStyle(
+        var outputStyle = ResolveArrayValue(
             argsConfig.OutputStyle,
             modeConfig?.OutputStyle,
             globalConfig?.OutputStyle,
             defaults.OutputStyle
         );
-        var benchmarks =
-            argsConfig.Benchmarks ?? modeConfig?.Benchmarks ?? globalConfig?.Benchmarks ?? [];
+        var benchmarks = ResolveArrayValue(
+            argsConfig.Benchmarks,
+            modeConfig?.Benchmarks,
+            globalConfig?.Benchmarks,
+            []
+        );
         var noDelete =
             argsConfig.NoDelete
             ?? modeConfig?.NoDelete
@@ -93,26 +97,26 @@ public static class ConfigurationLoader
             NoDelete = noDelete,
         };
 
-        static string[] ResolveOutputStyle(
-            string[]? argsStyle,
-            string[]? modeStyle,
-            string[]? globalStyle,
+        static string[] ResolveArrayValue(
+            string[]? argsValue,
+            string[]? modeValue,
+            string[]? globalValue,
             string[] defaults
         )
         {
-            if (argsStyle != null && argsStyle.Length > 0)
+            if (argsValue != null && argsValue.Length > 0)
             {
-                return argsStyle;
+                return argsValue;
             }
 
-            if (modeStyle != null && modeStyle.Length > 0)
+            if (modeValue != null && modeValue.Length > 0)
             {
-                return modeStyle;
+                return modeValue;
             }
 
-            if (globalStyle != null && globalStyle.Length > 0)
+            if (globalValue != null && globalValue.Length > 0)
             {
-                return globalStyle;
+                return globalValue;
             }
 
             return defaults;
