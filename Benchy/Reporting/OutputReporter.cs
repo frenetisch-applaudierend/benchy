@@ -13,40 +13,47 @@ public class OutputReporter : IReporter
 
         foreach (var comparison in result.Comparisons)
         {
-            PrintComparsion(comparison);
+            PrintComparsion(comparison, result.SignificanceThreshold);
         }
     }
 
-    private static void PrintComparsion(BenchmarkComparison comparison)
+    private static void PrintComparsion(
+        BenchmarkComparison comparison,
+        double significanceThreshold
+    )
     {
         CliOutput.Info($"{Decor("🏁 ")}Results for {Em(comparison.FullName)}", indent: 1);
 
         PrintDuration(
             name: "Mean",
             value: comparison.Statistics.Mean,
-            comparisonType: ComparisonType.LowerIsBetter
+            comparisonType: ComparisonType.LowerIsBetter,
+            significanceThreshold: significanceThreshold
         );
         PrintDuration(
             name: "Error",
             value: comparison.Statistics.StandardError,
-            comparisonType: ComparisonType.Irrelevant
+            comparisonType: ComparisonType.Irrelevant,
+            significanceThreshold: significanceThreshold
         );
         PrintDuration(
             name: "StdDev",
             value: comparison.Statistics.StandardDeviation,
-            comparisonType: ComparisonType.Irrelevant
+            comparisonType: ComparisonType.Irrelevant,
+            significanceThreshold: significanceThreshold
         );
     }
 
     private static void PrintDuration(
         string name,
         ComparisonValue<double> value,
-        ComparisonType comparisonType
+        ComparisonType comparisonType,
+        double significanceThreshold
     )
     {
         var (baseline, target) = FormatDuration(value);
 
-        var resultSymbol = GetResultSymbol(value, comparisonType);
+        var resultSymbol = GetResultSymbol(value, comparisonType, significanceThreshold);
 
         var percentageChange =
             value.PercentageChange?.ToString("F1", CultureInfo.InvariantCulture) ?? "n/a";
@@ -59,7 +66,8 @@ public class OutputReporter : IReporter
 
     private static FormattedText GetResultSymbol(
         ComparisonValue<double> value,
-        ComparisonType comparisonType
+        ComparisonType comparisonType,
+        double significanceThreshold
     )
     {
         if (comparisonType == ComparisonType.Irrelevant)
@@ -77,19 +85,48 @@ public class OutputReporter : IReporter
             return "=";
         }
 
-        return value.Delta < 0
-            ? Colored(
-                "▼",
-                comparisonType == ComparisonType.LowerIsBetter
-                    ? ConsoleColor.Green
-                    : ConsoleColor.Red
-            )
-            : Colored(
-                "▲",
-                comparisonType == ComparisonType.HigherIsBetter
-                    ? ConsoleColor.Green
-                    : ConsoleColor.Red
-            );
+        var isSignificant = value.HasSignificantChange(significanceThreshold * 100);
+        var isImprovement =
+            comparisonType == ComparisonType.LowerIsBetter ? value.Delta < 0 : value.Delta > 0;
+
+        if (value.Delta < 0)
+        {
+            // Downward arrow
+            if (isSignificant)
+            {
+                // Colored solid arrow for significant changes
+                return Colored(
+                    "▼",
+                    comparisonType == ComparisonType.LowerIsBetter
+                        ? ConsoleColor.Green
+                        : ConsoleColor.Red
+                );
+            }
+            else
+            {
+                // Outlined arrow for non-significant changes
+                return "▽"; // Using outlined triangle pointing down
+            }
+        }
+        else
+        {
+            // Upward arrow
+            if (isSignificant)
+            {
+                // Colored solid arrow for significant changes
+                return Colored(
+                    "▲",
+                    comparisonType == ComparisonType.HigherIsBetter
+                        ? ConsoleColor.Green
+                        : ConsoleColor.Red
+                );
+            }
+            else
+            {
+                // Outlined arrow for non-significant changes
+                return "△"; // Using outlined triangle pointing up
+            }
+        }
     }
 
     private static (string, string) FormatDuration(ComparisonValue<double> value)
