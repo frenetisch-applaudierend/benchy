@@ -17,6 +17,7 @@ public class CiHandler() : CliHandler<CiHandler.Args>(ConfigurationLoader.Mode.C
         string[]? outputStyles,
         string[]? benchmarks,
         double? significanceThreshold,
+        bool? decoration,
         DirectoryInfo baselineDirectory,
         DirectoryInfo targetDirectory
     )
@@ -30,6 +31,7 @@ public class CiHandler() : CliHandler<CiHandler.Args>(ConfigurationLoader.Mode.C
                 OutputStyle = outputStyles,
                 Benchmarks = benchmarks,
                 SignificanceThreshold = significanceThreshold,
+                Decoration = decoration,
                 BaselineDirectory = baselineDirectory,
                 TargetDirectory = targetDirectory,
             }

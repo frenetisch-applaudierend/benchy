@@ -88,6 +88,12 @@ public static class ConfigurationLoader
             ?? modeConfig?.SignificanceThreshold
             ?? globalConfig?.SignificanceThreshold
             ?? defaults.SignificanceThreshold;
+        var decoration = ResolveDecoration(
+            argsConfig.Decoration,
+            modeConfig?.Decoration,
+            globalConfig?.Decoration,
+            mode
+        );
 
         return new ResolvedConfig
         {
@@ -101,6 +107,7 @@ public static class ConfigurationLoader
             Benchmarks = benchmarks,
             NoDelete = noDelete,
             SignificanceThreshold = significanceThreshold,
+            Decoration = decoration,
         };
 
         static string[] ResolveArrayValue(
@@ -127,6 +134,44 @@ public static class ConfigurationLoader
 
             return defaults;
         }
+
+        static bool ResolveDecoration(
+            bool? argsValue,
+            bool? modeValue,
+            bool? globalValue,
+            Mode mode
+        )
+        {
+            if (argsValue.HasValue)
+            {
+                return argsValue.Value;
+            }
+
+            if (modeValue.HasValue)
+            {
+                return modeValue.Value;
+            }
+
+            if (globalValue.HasValue)
+            {
+                return globalValue.Value;
+            }
+
+            // Smart defaults based on mode and output detection
+            return mode switch
+            {
+                Mode.Ci => false,
+                Mode.Interactive => !IsOutputRedirected(),
+                _ => false,
+            };
+        }
+    }
+
+    private static bool IsOutputRedirected()
+    {
+        // Check if stdout is redirected (piped or redirected to file)
+        // In .NET, Console.IsOutputRedirected returns true when output is piped or redirected
+        return Console.IsOutputRedirected;
     }
 
     private static FileInfo? FindConfigurationFile(DirectoryInfo basePath)

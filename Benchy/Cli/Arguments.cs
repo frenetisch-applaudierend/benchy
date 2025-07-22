@@ -56,6 +56,11 @@ public static class Arguments
                 }
             }
         );
+
+        public static readonly Option<bool?> DecorationOption = new(
+            name: "--decoration",
+            description: "Enable colored output and symbols (default: auto-detected based on mode and output)"
+        );
     }
 
     public static class Interactive

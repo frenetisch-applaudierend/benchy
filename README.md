@@ -169,6 +169,7 @@ settings, then global settings.
 | `output_directory`       | string           | Directory to output benchmark results                       |
 | `output_style`           | array of strings | Output formats: `console`, `json`, `markdown`               |
 | `significance_threshold` | number           | Statistical significance threshold (0.0-1.0, default: 0.05) |
+| `decoration`             | boolean          | Enable colored output and symbols (auto-detected by default) |
 | `benchmarks`             | array of strings | Benchmark projects to run                                   |
 | `no_delete`              | boolean          | Don't delete temporary directories (for debugging)          |
 
@@ -185,6 +186,7 @@ verbose = false
 output_directory = "./benchmark-results"
 output_style = ["console"]
 significance_threshold = 0.05  # 5% threshold for significant changes
+decoration = true  # Enable colored output and symbols (auto-detected by default)
 benchmarks = [
     "MyProject.Benchmarks",
     "MyProject.PerformanceTests"
@@ -193,6 +195,7 @@ benchmarks = [
 # Settings specific to interactive mode (benchy compare)
 [interactive]
 output_style = ["console"]
+decoration = true  # Default: true unless output is piped/redirected
 no_delete = false
 benchmarks = [
     "MyProject.Benchmarks",
@@ -202,6 +205,7 @@ benchmarks = [
 # Settings specific to CI mode (benchy ci / GitHub Action)
 [ci]
 output_style = ["json", "markdown"]
+decoration = false  # Default: false for CI mode
 verbose = true
 no_delete = true
 significance_threshold = 0.03  # Stricter 3% threshold for CI

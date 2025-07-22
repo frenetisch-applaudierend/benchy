@@ -6,6 +6,7 @@ verbose = false
 output_directory = "./benchmark-results"
 output_style = ["console"]
 significance_threshold = 0.05  # 5% threshold for significant changes
+decoration = true  # Enable colored output and symbols (auto-detected by default)
 benchmarks = [
     "MyProject.Benchmarks",
     "MyProject.PerformanceTests",
@@ -15,6 +16,7 @@ benchmarks = [
 [interactive]
 # Override global settings for interactive mode
 output_style = ["console"]
+decoration = true  # Default: true unless output is piped/redirected
 no_delete = false
 benchmarks = [
     "MyProject.Benchmarks",
@@ -26,6 +28,7 @@ benchmarks = [
 [ci]
 # Override global settings for CI mode
 output_style = ["json", "markdown"]
+decoration = false  # Default: false for CI mode
 verbose = true
 significance_threshold = 0.03  # Stricter 3% threshold for CI
 benchmarks = [

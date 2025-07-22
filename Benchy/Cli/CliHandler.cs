@@ -17,7 +17,7 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
         {
             CliOutput.EnableVerbose = verboseOutput;
             CliOutput.Writer = new ConsoleOutputWriter(
-                interactive: configMode == ConfigurationLoader.Mode.Interactive
+                interactive: args.Decoration ?? configMode == ConfigurationLoader.Mode.Interactive
             );
 
             using var temporaryDirectory = TemporaryDirectory.CreateNew();
@@ -31,8 +31,9 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
                 mode: configMode
             );
 
-            CliOutput.EnableVerbose = config.Verbose;
             verboseOutput = config.Verbose;
+            CliOutput.EnableVerbose = config.Verbose;
+            CliOutput.Writer = new ConsoleOutputWriter(interactive: config.Decoration);
 
             if (config.NoDelete)
             {
@@ -81,6 +82,7 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
         CliOutput.Verbose($"  Output Style: {string.Join(", ", config.OutputStyle)}");
         CliOutput.Verbose($"  Benchmarks: {string.Join(", ", config.Benchmarks)}");
         CliOutput.Verbose($"  No Delete: {config.NoDelete}");
+        CliOutput.Verbose($"  Decoration: {config.Decoration}");
     }
 
     private static ConfigFromArgs GetConfigFromArgs(TArgs args)
@@ -93,6 +95,7 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
             Benchmarks = args.Benchmarks,
             NoDelete = args.NoDelete,
             SignificanceThreshold = args.SignificanceThreshold,
+            Decoration = args.Decoration,
         };
     }
 
@@ -109,4 +112,5 @@ public class CliHandlerArgs
     public required string[]? OutputStyle { get; init; }
     public required string[]? Benchmarks { get; init; }
     public required double? SignificanceThreshold { get; init; }
+    public required bool? Decoration { get; init; }
 }

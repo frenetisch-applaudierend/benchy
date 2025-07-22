@@ -9,4 +9,5 @@ public class ResolvedConfig
     public required string[] Benchmarks { get; init; }
     public required bool NoDelete { get; init; }
     public required double SignificanceThreshold { get; init; }
+    public required bool Decoration { get; init; }
 }

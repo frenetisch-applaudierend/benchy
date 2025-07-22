@@ -9,6 +9,7 @@ rootCommand.AddGlobalOption(Arguments.Shared.OutputDirectoryOption);
 rootCommand.AddGlobalOption(Arguments.Shared.OutputStyleOption);
 rootCommand.AddGlobalOption(Arguments.Shared.BenchmarkOption);
 rootCommand.AddGlobalOption(Arguments.Shared.SignificanceThresholdOption);
+rootCommand.AddGlobalOption(Arguments.Shared.DecorationOption);
 
 var compareCommand = new Command(
     "compare",
@@ -38,6 +39,7 @@ compareCommand.SetHandler(
             context.ParseResult.GetValueForOption(Arguments.Shared.OutputStyleOption),
             context.ParseResult.GetValueForOption(Arguments.Shared.BenchmarkOption),
             context.ParseResult.GetValueForOption(Arguments.Shared.SignificanceThresholdOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.DecorationOption),
             context.ParseResult.GetValueForOption(Arguments.Interactive.RepositoryPathOption),
             context.ParseResult.GetValueForOption(Arguments.Interactive.NoDeleteOption),
             context.ParseResult.GetValueForArgument(Arguments.Interactive.BaselineArgument),
@@ -55,6 +57,7 @@ ciCommand.SetHandler(
             context.ParseResult.GetValueForOption(Arguments.Shared.OutputStyleOption),
             context.ParseResult.GetValueForOption(Arguments.Shared.BenchmarkOption),
             context.ParseResult.GetValueForOption(Arguments.Shared.SignificanceThresholdOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.DecorationOption),
             context.ParseResult.GetValueForArgument(Arguments.Ci.BaselineDirectoryArgument),
             context.ParseResult.GetValueForArgument(Arguments.Ci.TargetDirectoryArgument)
         );
