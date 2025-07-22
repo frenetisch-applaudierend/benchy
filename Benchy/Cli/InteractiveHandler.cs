@@ -21,6 +21,7 @@ public class InteractiveHandler()
         DirectoryInfo? providedOutputDirectory,
         string[]? outputStyles,
         string[]? benchmarks,
+        double? significanceThreshold,
         DirectoryInfo? repositoryPath,
         bool? noDelete,
         string baselineRef,
@@ -35,6 +36,7 @@ public class InteractiveHandler()
                 OutputDirectory = providedOutputDirectory?.FullName,
                 OutputStyle = outputStyles,
                 Benchmarks = benchmarks,
+                SignificanceThreshold = significanceThreshold,
                 RepositoryPath = repositoryPath,
                 BaselineRef = baselineRef,
                 TargetRef = targetRef,
@@ -67,7 +69,12 @@ public class InteractiveHandler()
             benchmarks: config.Benchmarks
         );
 
-        return BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, config.Verbose);
+        return BenchmarkComparer.CompareBenchmarks(
+            baselineRun,
+            targetRun,
+            config.Verbose,
+            config.SignificanceThreshold
+        );
     }
 
     protected override DirectoryInfo GetConfigBasePath(Args args)

@@ -83,6 +83,11 @@ public static class ConfigurationLoader
             ?? modeConfig?.NoDelete
             ?? globalConfig?.NoDelete
             ?? defaults.NoDelete;
+        var significanceThreshold =
+            argsConfig.SignificanceThreshold
+            ?? modeConfig?.SignificanceThreshold
+            ?? globalConfig?.SignificanceThreshold
+            ?? defaults.SignificanceThreshold;
 
         return new ResolvedConfig
         {
@@ -95,6 +100,7 @@ public static class ConfigurationLoader
             OutputStyle = outputStyle,
             Benchmarks = benchmarks,
             NoDelete = noDelete,
+            SignificanceThreshold = significanceThreshold,
         };
 
         static string[] ResolveArrayValue(
@@ -146,12 +152,14 @@ public static class ConfigurationLoader
                 Verbose = false,
                 NoDelete = false,
                 OutputStyle = ["console"],
+                SignificanceThreshold = 0.05, // 5%
             },
             Mode.Ci => new Defaults
             {
                 Verbose = false,
                 NoDelete = true,
                 OutputStyle = ["json", "markdown"],
+                SignificanceThreshold = 0.05, // 5%
             },
         };
     }
@@ -167,5 +175,6 @@ public static class ConfigurationLoader
         public required bool Verbose { get; init; }
         public required bool NoDelete { get; init; }
         public required string[] OutputStyle { get; init; }
+        public required double SignificanceThreshold { get; init; }
     }
 }

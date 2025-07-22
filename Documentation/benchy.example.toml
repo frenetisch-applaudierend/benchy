@@ -5,6 +5,7 @@
 verbose = false
 output_directory = "./benchmark-results"
 output_style = ["console"]
+significance_threshold = 0.05  # 5% threshold for significant changes
 benchmarks = [
     "MyProject.Benchmarks",
     "MyProject.PerformanceTests",
@@ -26,6 +27,7 @@ benchmarks = [
 # Override global settings for CI mode
 output_style = ["json", "markdown"]
 verbose = true
+significance_threshold = 0.03  # Stricter 3% threshold for CI
 benchmarks = [
     "MyProject.Benchmarks",
     "MyProject.StabilityTests",

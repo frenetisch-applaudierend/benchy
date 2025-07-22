@@ -7,7 +7,8 @@ public static class BenchmarkComparer
     public static BenchmarkComparisonResult CompareBenchmarks(
         BenchmarkRun baseline,
         BenchmarkRun target,
-        bool verbose
+        bool verbose,
+        double significanceThreshold = 0.05
     )
     {
         BenchmarkRun[] runs = [baseline, target];
@@ -16,7 +17,8 @@ public static class BenchmarkComparer
         var results = RunBenchmarks(runs, verbose);
         var comparisonResult = BenchmarkComparisonResult.FromBenchmarkRunResults(
             results[0], // baseline
-            results[1] // target
+            results[1], // target
+            significanceThreshold
         );
 
         return comparisonResult;

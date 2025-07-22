@@ -8,6 +8,7 @@ rootCommand.AddGlobalOption(Arguments.Shared.VerboseOption);
 rootCommand.AddGlobalOption(Arguments.Shared.OutputDirectoryOption);
 rootCommand.AddGlobalOption(Arguments.Shared.OutputStyleOption);
 rootCommand.AddGlobalOption(Arguments.Shared.BenchmarkOption);
+rootCommand.AddGlobalOption(Arguments.Shared.SignificanceThresholdOption);
 
 var compareCommand = new Command(
     "compare",
@@ -29,25 +30,35 @@ rootCommand.AddCommand(ciCommand);
 
 // Define command handlers
 compareCommand.SetHandler(
-    InteractiveHandler.Handle,
-    Arguments.Shared.VerboseOption,
-    Arguments.Shared.OutputDirectoryOption,
-    Arguments.Shared.OutputStyleOption,
-    Arguments.Shared.BenchmarkOption,
-    Arguments.Interactive.RepositoryPathOption,
-    Arguments.Interactive.NoDeleteOption,
-    Arguments.Interactive.BaselineArgument,
-    Arguments.Interactive.TargetArgument
+    (context) =>
+    {
+        InteractiveHandler.Handle(
+            context.ParseResult.GetValueForOption(Arguments.Shared.VerboseOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.OutputDirectoryOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.OutputStyleOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.BenchmarkOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.SignificanceThresholdOption),
+            context.ParseResult.GetValueForOption(Arguments.Interactive.RepositoryPathOption),
+            context.ParseResult.GetValueForOption(Arguments.Interactive.NoDeleteOption),
+            context.ParseResult.GetValueForArgument(Arguments.Interactive.BaselineArgument),
+            context.ParseResult.GetValueForArgument(Arguments.Interactive.TargetArgument)
+        );
+    }
 );
 
 ciCommand.SetHandler(
-    CiHandler.Handle,
-    Arguments.Shared.VerboseOption,
-    Arguments.Shared.OutputDirectoryOption,
-    Arguments.Shared.OutputStyleOption,
-    Arguments.Shared.BenchmarkOption,
-    Arguments.Ci.BaselineDirectoryArgument,
-    Arguments.Ci.TargetDirectoryArgument
+    (context) =>
+    {
+        CiHandler.Handle(
+            context.ParseResult.GetValueForOption(Arguments.Shared.VerboseOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.OutputDirectoryOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.OutputStyleOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.BenchmarkOption),
+            context.ParseResult.GetValueForOption(Arguments.Shared.SignificanceThresholdOption),
+            context.ParseResult.GetValueForArgument(Arguments.Ci.BaselineDirectoryArgument),
+            context.ParseResult.GetValueForArgument(Arguments.Ci.TargetDirectoryArgument)
+        );
+    }
 );
 
 return await rootCommand.InvokeAsync(args);

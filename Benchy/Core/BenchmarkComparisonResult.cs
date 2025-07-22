@@ -2,11 +2,15 @@ using System.Numerics;
 
 namespace Benchy.Core;
 
-public sealed record BenchmarkComparisonResult(IReadOnlyList<BenchmarkComparison> Comparisons)
+public sealed record BenchmarkComparisonResult(
+    IReadOnlyList<BenchmarkComparison> Comparisons,
+    double SignificanceThreshold
+)
 {
     public static BenchmarkComparisonResult FromBenchmarkRunResults(
         BenchmarkRunResult baseline,
-        BenchmarkRunResult target
+        BenchmarkRunResult target,
+        double significanceThreshold
     )
     {
         var baselineBenchmarksByName = baseline
@@ -31,8 +35,16 @@ public sealed record BenchmarkComparisonResult(IReadOnlyList<BenchmarkComparison
             )
             .ToList();
 
-        return new BenchmarkComparisonResult(comparisons);
+        return new BenchmarkComparisonResult(comparisons, significanceThreshold);
     }
+
+    public bool IsSignificantImprovement(BenchmarkComparison comparison, bool lowerIsBetter) =>
+        comparison.Statistics.Mean.IsImprovement(lowerIsBetter)
+        && comparison.Statistics.Mean.HasSignificantChange(SignificanceThreshold * 100);
+
+    public bool IsSignificantRegression(BenchmarkComparison comparison, bool lowerIsBetter) =>
+        comparison.Statistics.Mean.IsRegression(lowerIsBetter)
+        && comparison.Statistics.Mean.HasSignificantChange(SignificanceThreshold * 100);
 }
 
 public sealed record BenchmarkComparison(
@@ -234,6 +246,6 @@ public sealed record ComparisonValue<T>(T? Baseline, T? Target)
         Delta.HasValue
         && (lowerIsBetter ? Delta.Value.CompareTo(T.Zero) > 0 : Delta.Value.CompareTo(T.Zero) < 0);
 
-    public bool HasSignificantChange(double thresholdPercent = 5.0) =>
+    public bool HasSignificantChange(double thresholdPercent) =>
         PercentageChange.HasValue && Math.Abs(PercentageChange.Value) >= thresholdPercent;
 }

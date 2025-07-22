@@ -42,6 +42,20 @@ public static class Arguments
                 }
             }
         );
+
+        public static readonly Option<double?> SignificanceThresholdOption = new Option<double?>(
+            name: "--significance-threshold",
+            description: "Statistical significance threshold for benchmark comparisons (default: 0.05)"
+        ).WithValidator(
+            (option, result) =>
+            {
+                var value = result.GetValueForOption(option);
+                if (value.HasValue && (value.Value <= 0 || value.Value >= 1))
+                {
+                    result.ErrorMessage = "Significance threshold must be between 0 and 1";
+                }
+            }
+        );
     }
 
     public static class Interactive

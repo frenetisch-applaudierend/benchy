@@ -92,6 +92,7 @@ public abstract class CliHandler<TArgs>(ConfigurationLoader.Mode configMode)
             OutputStyle = args.OutputStyle,
             Benchmarks = args.Benchmarks,
             NoDelete = args.NoDelete,
+            SignificanceThreshold = args.SignificanceThreshold,
         };
     }
 
@@ -107,4 +108,5 @@ public class CliHandlerArgs
     public required string? OutputDirectory { get; init; }
     public required string[]? OutputStyle { get; init; }
     public required string[]? Benchmarks { get; init; }
+    public required double? SignificanceThreshold { get; init; }
 }

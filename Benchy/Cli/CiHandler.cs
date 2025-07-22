@@ -16,6 +16,7 @@ public class CiHandler() : CliHandler<CiHandler.Args>(ConfigurationLoader.Mode.C
         DirectoryInfo? providedOutputDirectory,
         string[]? outputStyles,
         string[]? benchmarks,
+        double? significanceThreshold,
         DirectoryInfo baselineDirectory,
         DirectoryInfo targetDirectory
     )
@@ -28,6 +29,7 @@ public class CiHandler() : CliHandler<CiHandler.Args>(ConfigurationLoader.Mode.C
                 OutputDirectory = providedOutputDirectory?.FullName,
                 OutputStyle = outputStyles,
                 Benchmarks = benchmarks,
+                SignificanceThreshold = significanceThreshold,
                 BaselineDirectory = baselineDirectory,
                 TargetDirectory = targetDirectory,
             }
@@ -50,7 +52,12 @@ public class CiHandler() : CliHandler<CiHandler.Args>(ConfigurationLoader.Mode.C
             benchmarks: config.Benchmarks
         );
 
-        return BenchmarkComparer.CompareBenchmarks(baselineRun, targetRun, config.Verbose);
+        return BenchmarkComparer.CompareBenchmarks(
+            baselineRun,
+            targetRun,
+            config.Verbose,
+            config.SignificanceThreshold
+        );
     }
 
     protected override DirectoryInfo GetConfigBasePath(Args args)

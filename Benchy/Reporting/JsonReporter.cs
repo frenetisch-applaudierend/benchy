@@ -29,7 +29,11 @@ public class JsonReporter : IReporter
             GeneratedAt = DateTime.UtcNow,
             TotalBenchmarks = result.Comparisons.Count,
             Summary = CreateSummary(result),
-            Comparisons = result.Comparisons.Select(CreateComparisonData).ToArray(),
+            Comparisons = result
+                .Comparisons.Select(c =>
+                    CreateComparisonData(c, significanceThreshold: result.SignificanceThreshold)
+                )
+                .ToArray(),
         };
 
         var json = JsonSerializer.Serialize(reportData, jsonOptions);
@@ -66,81 +70,130 @@ public class JsonReporter : IReporter
         };
     }
 
-    private static object CreateComparisonData(BenchmarkComparison comparison)
+    private static object CreateComparisonData(
+        BenchmarkComparison comparison,
+        double significanceThreshold
+    )
     {
         return new
         {
             comparison.FullName,
             Performance = new
             {
-                Mean = CreateValueData(comparison.Statistics.Mean, lowerIsBetter: true),
-                Median = CreateValueData(comparison.Statistics.Median, lowerIsBetter: true),
-                Min = CreateValueData(comparison.Statistics.Min, lowerIsBetter: true),
-                Max = CreateValueData(comparison.Statistics.Max, lowerIsBetter: true),
+                Mean = CreateValueData(
+                    comparison.Statistics.Mean,
+                    lowerIsBetter: true,
+                    significanceThreshold
+                ),
+                Median = CreateValueData(
+                    comparison.Statistics.Median,
+                    lowerIsBetter: true,
+                    significanceThreshold
+                ),
+                Min = CreateValueData(
+                    comparison.Statistics.Min,
+                    lowerIsBetter: true,
+                    significanceThreshold
+                ),
+                Max = CreateValueData(
+                    comparison.Statistics.Max,
+                    lowerIsBetter: true,
+                    significanceThreshold
+                ),
                 StandardDeviation = CreateValueData(
                     comparison.Statistics.StandardDeviation,
-                    lowerIsBetter: true
+                    lowerIsBetter: true,
+                    significanceThreshold
                 ),
                 StandardError = CreateValueData(
                     comparison.Statistics.StandardError,
-                    lowerIsBetter: true
+                    lowerIsBetter: true,
+                    significanceThreshold
                 ),
-                Variance = CreateValueData(comparison.Statistics.Variance, lowerIsBetter: true),
-                Skewness = CreateValueData(comparison.Statistics.Skewness, lowerIsBetter: true),
-                Kurtosis = CreateValueData(comparison.Statistics.Kurtosis, lowerIsBetter: true),
+                Variance = CreateValueData(
+                    comparison.Statistics.Variance,
+                    lowerIsBetter: true,
+                    significanceThreshold
+                ),
+                Skewness = CreateValueData(
+                    comparison.Statistics.Skewness,
+                    lowerIsBetter: true,
+                    significanceThreshold
+                ),
+                Kurtosis = CreateValueData(
+                    comparison.Statistics.Kurtosis,
+                    lowerIsBetter: true,
+                    significanceThreshold
+                ),
                 ConfidenceInterval = new
                 {
                     Mean = CreateValueData(
                         comparison.Statistics.ConfidenceInterval.Mean,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     Lower = CreateValueData(
                         comparison.Statistics.ConfidenceInterval.Lower,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     Upper = CreateValueData(
                         comparison.Statistics.ConfidenceInterval.Upper,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     Margin = CreateValueData(
                         comparison.Statistics.ConfidenceInterval.Margin,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                 },
                 Percentiles = new
                 {
-                    P0 = CreateValueData(comparison.Statistics.Percentiles.P0, lowerIsBetter: true),
+                    P0 = CreateValueData(
+                        comparison.Statistics.Percentiles.P0,
+                        lowerIsBetter: true,
+                        significanceThreshold
+                    ),
                     P25 = CreateValueData(
                         comparison.Statistics.Percentiles.P25,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     P50 = CreateValueData(
                         comparison.Statistics.Percentiles.P50,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     P67 = CreateValueData(
                         comparison.Statistics.Percentiles.P67,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     P80 = CreateValueData(
                         comparison.Statistics.Percentiles.P80,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     P85 = CreateValueData(
                         comparison.Statistics.Percentiles.P85,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     P90 = CreateValueData(
                         comparison.Statistics.Percentiles.P90,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     P95 = CreateValueData(
                         comparison.Statistics.Percentiles.P95,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                     P100 = CreateValueData(
                         comparison.Statistics.Percentiles.P100,
-                        lowerIsBetter: true
+                        lowerIsBetter: true,
+                        significanceThreshold
                     ),
                 },
             },
@@ -148,29 +201,38 @@ public class JsonReporter : IReporter
             {
                 BytesAllocatedPerOperation = CreateValueData(
                     comparison.Memory.BytesAllocatedPerOperation,
-                    lowerIsBetter: true
+                    lowerIsBetter: true,
+                    significanceThreshold
                 ),
                 Gen0Collections = CreateValueData(
                     comparison.Memory.Gen0Collections,
-                    lowerIsBetter: true
+                    lowerIsBetter: true,
+                    significanceThreshold
                 ),
                 Gen1Collections = CreateValueData(
                     comparison.Memory.Gen1Collections,
-                    lowerIsBetter: true
+                    lowerIsBetter: true,
+                    significanceThreshold
                 ),
                 Gen2Collections = CreateValueData(
                     comparison.Memory.Gen2Collections,
-                    lowerIsBetter: true
+                    lowerIsBetter: true,
+                    significanceThreshold
                 ),
                 TotalOperations = CreateValueData(
                     comparison.Memory.TotalOperations,
-                    lowerIsBetter: false
+                    lowerIsBetter: false,
+                    significanceThreshold
                 ),
             },
         };
     }
 
-    private static object CreateValueData<T>(ComparisonValue<T> value, bool lowerIsBetter = true)
+    private static object CreateValueData<T>(
+        ComparisonValue<T> value,
+        bool lowerIsBetter,
+        double significanceThreshold
+    )
         where T : struct, IComparable<T>, System.Numerics.INumber<T>
     {
         return new
@@ -181,7 +243,7 @@ public class JsonReporter : IReporter
             PercentageChange = value.PercentageChange,
             IsImprovement = value.IsImprovement(lowerIsBetter),
             IsRegression = value.IsRegression(lowerIsBetter),
-            HasSignificantChange = value.HasSignificantChange(),
+            HasSignificantChange = value.HasSignificantChange(significanceThreshold * 100),
             ChangeSymbol = GetChangeSymbol(value, lowerIsBetter),
         };
     }

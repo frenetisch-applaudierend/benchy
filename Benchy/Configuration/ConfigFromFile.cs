@@ -13,4 +13,5 @@ public class ConfigValues
     public string[]? OutputStyle { get; set; }
     public string[]? Benchmarks { get; set; }
     public bool? NoDelete { get; set; }
+    public double? SignificanceThreshold { get; set; }
 }

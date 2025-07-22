@@ -46,10 +46,11 @@ the current working copy (including uncommitted changes) is used as the target.
 > [!NOTE]
 > Only the most relevant options are shown here. For a full list, run `benchy compare --help`.
 
-| Option                          | Description                                                                             |
-| ------------------------------- | --------------------------------------------------------------------------------------- |
-| `--verbose`                     | Enable verbose output                                                                   |
-| `-b`, `--benchmark <benchmark>` | The benchmark project(s) to run. Specify the flag multiple times for multiple projects. |
+| Option                                 | Description                                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------- |
+| `--verbose`                            | Enable verbose output                                                                   |
+| `--significance-threshold <threshold>` | Statistical significance threshold for benchmark comparisons (0.0-1.0, default: 0.05)   |
+| `-b`, `--benchmark <benchmark>`        | The benchmark project(s) to run. Specify the flag multiple times for multiple projects. |
 
 Benchmarks can be either specified as the path to a `.csproj` file or as the name of a project,
 i.e. `MyBenchmarkProject.csproj` or `MyBenchmarkProject`. In the latter case, Benchy will look
@@ -162,13 +163,14 @@ The configuration file supports hierarchical settings with global defaults and m
 overrides. Command line arguments take the highest precedence, followed by mode-specific
 settings, then global settings.
 
-| Option             | Type             | Description                                        |
-| ------------------ | ---------------- | -------------------------------------------------- |
-| `verbose`          | boolean          | Enable verbose output                              |
-| `output_directory` | string           | Directory to output benchmark results              |
-| `output_style`     | array of strings | Output formats: `console`, `json`, `markdown`      |
-| `benchmarks`       | array of strings | Benchmark projects to run                          |
-| `no_delete`        | boolean          | Don't delete temporary directories (for debugging) |
+| Option                   | Type             | Description                                                 |
+| ------------------------ | ---------------- | ----------------------------------------------------------- |
+| `verbose`                | boolean          | Enable verbose output                                       |
+| `output_directory`       | string           | Directory to output benchmark results                       |
+| `output_style`           | array of strings | Output formats: `console`, `json`, `markdown`               |
+| `significance_threshold` | number           | Statistical significance threshold (0.0-1.0, default: 0.05) |
+| `benchmarks`             | array of strings | Benchmark projects to run                                   |
+| `no_delete`              | boolean          | Don't delete temporary directories (for debugging)          |
 
 ### Mode-Specific Configuration
 
@@ -182,6 +184,7 @@ sections. These override the global settings for their respective modes.
 verbose = false
 output_directory = "./benchmark-results"
 output_style = ["console"]
+significance_threshold = 0.05  # 5% threshold for significant changes
 benchmarks = [
     "MyProject.Benchmarks",
     "MyProject.PerformanceTests"
@@ -201,6 +204,7 @@ benchmarks = [
 output_style = ["json", "markdown"]
 verbose = true
 no_delete = true
+significance_threshold = 0.03  # Stricter 3% threshold for CI
 benchmarks = [
     "MyProject.Benchmarks", 
     "MyProject.StabilityTests"
