@@ -37,12 +37,10 @@ public class MarkdownReporter(string outputPath) : IReporter
 
         var totalBenchmarks = result.Comparisons.Count;
         var improvements = result.Comparisons.Count(c =>
-            c.Statistics.Mean.IsImprovement()
-            && c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
+            c.Statistics.Mean.IsSignificantImprovement()
         );
         var regressions = result.Comparisons.Count(c =>
-            c.Statistics.Mean.IsRegression()
-            && c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
+            c.Statistics.Mean.IsSignificantRegression()
         );
         var unchanged = totalBenchmarks - improvements - regressions;
 
@@ -75,16 +73,12 @@ public class MarkdownReporter(string outputPath) : IReporter
 
         foreach (var comparison in result.Comparisons)
         {
-            WriteBenchmarkComparison(markdown, comparison, result.SignificanceThreshold);
+            WriteBenchmarkComparison(markdown, comparison);
             markdown.AppendLine();
         }
     }
 
-    private void WriteBenchmarkComparison(
-        StringBuilder markdown,
-        BenchmarkComparison comparison,
-        double significanceThreshold
-    )
+    private void WriteBenchmarkComparison(StringBuilder markdown, BenchmarkComparison comparison)
     {
         WriteHeader(markdown, comparison.FullName, 3);
         markdown.AppendLine();
@@ -96,30 +90,12 @@ public class MarkdownReporter(string outputPath) : IReporter
         markdown.AppendLine("| Metric | Baseline | Target | Delta | % Change | Status |");
         markdown.AppendLine("|--------|----------|--------|-------|----------|--------|");
 
-        WriteMetricRow(markdown, "Mean", comparison.Statistics.Mean, "ns", significanceThreshold);
-        WriteMetricRow(
-            markdown,
-            "Median",
-            comparison.Statistics.Median,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(markdown, "Min", comparison.Statistics.Min, "ns", significanceThreshold);
-        WriteMetricRow(markdown, "Max", comparison.Statistics.Max, "ns", significanceThreshold);
-        WriteMetricRow(
-            markdown,
-            "Std Dev",
-            comparison.Statistics.StandardDeviation,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "Std Error",
-            comparison.Statistics.StandardError,
-            "ns",
-            significanceThreshold
-        );
+        WriteMetricRow(markdown, "Mean", comparison.Statistics.Mean, "ns");
+        WriteMetricRow(markdown, "Median", comparison.Statistics.Median, "ns");
+        WriteMetricRow(markdown, "Min", comparison.Statistics.Min, "ns");
+        WriteMetricRow(markdown, "Max", comparison.Statistics.Max, "ns");
+        WriteMetricRow(markdown, "Std Dev", comparison.Statistics.StandardDeviation, "ns");
+        WriteMetricRow(markdown, "Std Error", comparison.Statistics.StandardError, "ns");
 
         markdown.AppendLine();
 
@@ -130,34 +106,10 @@ public class MarkdownReporter(string outputPath) : IReporter
         markdown.AppendLine("| Metric | Baseline | Target | Delta | % Change | Status |");
         markdown.AppendLine("|--------|----------|--------|-------|----------|--------|");
 
-        WriteMetricRow(
-            markdown,
-            "Allocated",
-            comparison.Memory.BytesAllocatedPerOperation,
-            "B",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "Gen0",
-            comparison.Memory.Gen0Collections,
-            "",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "Gen1",
-            comparison.Memory.Gen1Collections,
-            "",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "Gen2",
-            comparison.Memory.Gen2Collections,
-            "",
-            significanceThreshold
-        );
+        WriteMetricRow(markdown, "Allocated", comparison.Memory.BytesAllocatedPerOperation, "B");
+        WriteMetricRow(markdown, "Gen0", comparison.Memory.Gen0Collections, "");
+        WriteMetricRow(markdown, "Gen1", comparison.Memory.Gen1Collections, "");
+        WriteMetricRow(markdown, "Gen2", comparison.Memory.Gen2Collections, "");
 
         markdown.AppendLine();
 
@@ -168,77 +120,22 @@ public class MarkdownReporter(string outputPath) : IReporter
         markdown.AppendLine("| Percentile | Baseline | Target | Delta | % Change | Status |");
         markdown.AppendLine("|------------|----------|--------|-------|----------|--------|");
 
-        WriteMetricRow(
-            markdown,
-            "P0",
-            comparison.Statistics.Percentiles.P0,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "P25",
-            comparison.Statistics.Percentiles.P25,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "P50",
-            comparison.Statistics.Percentiles.P50,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "P67",
-            comparison.Statistics.Percentiles.P67,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "P80",
-            comparison.Statistics.Percentiles.P80,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "P85",
-            comparison.Statistics.Percentiles.P85,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "P90",
-            comparison.Statistics.Percentiles.P90,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "P95",
-            comparison.Statistics.Percentiles.P95,
-            "ns",
-            significanceThreshold
-        );
-        WriteMetricRow(
-            markdown,
-            "P100",
-            comparison.Statistics.Percentiles.P100,
-            "ns",
-            significanceThreshold
-        );
+        WriteMetricRow(markdown, "P0", comparison.Statistics.Percentiles.P0, "ns");
+        WriteMetricRow(markdown, "P25", comparison.Statistics.Percentiles.P25, "ns");
+        WriteMetricRow(markdown, "P50", comparison.Statistics.Percentiles.P50, "ns");
+        WriteMetricRow(markdown, "P67", comparison.Statistics.Percentiles.P67, "ns");
+        WriteMetricRow(markdown, "P80", comparison.Statistics.Percentiles.P80, "ns");
+        WriteMetricRow(markdown, "P85", comparison.Statistics.Percentiles.P85, "ns");
+        WriteMetricRow(markdown, "P90", comparison.Statistics.Percentiles.P90, "ns");
+        WriteMetricRow(markdown, "P95", comparison.Statistics.Percentiles.P95, "ns");
+        WriteMetricRow(markdown, "P100", comparison.Statistics.Percentiles.P100, "ns");
     }
 
     private void WriteMetricRow<T>(
         StringBuilder markdown,
         string name,
         ComparisonValue<T> value,
-        string unit,
-        double significanceThreshold
+        string unit
     )
         where T : struct, IComparable<T>, System.Numerics.INumber<T>
     {
@@ -247,7 +144,7 @@ public class MarkdownReporter(string outputPath) : IReporter
         var delta = value.Delta?.ToString("F2", CultureInfo.InvariantCulture) ?? "N/A";
         var percentage =
             value.PercentageChange?.ToString("F1", CultureInfo.InvariantCulture) ?? "N/A";
-        var status = GetStatusEmoji(value, significanceThreshold);
+        var status = GetStatusEmoji(value);
 
         var baselineText = baseline == "N/A" ? baseline : $"{baseline} {unit}";
         var targetText = target == "N/A" ? target : $"{target} {unit}";
@@ -259,7 +156,7 @@ public class MarkdownReporter(string outputPath) : IReporter
         );
     }
 
-    private static string GetStatusEmoji<T>(ComparisonValue<T> value, double significanceThreshold)
+    private static string GetStatusEmoji<T>(ComparisonValue<T> value)
         where T : struct, IComparable<T>, System.Numerics.INumber<T>
     {
         if (!value.Delta.HasValue)
@@ -269,7 +166,7 @@ public class MarkdownReporter(string outputPath) : IReporter
             return ":white_circle:";
 
         // Only show improvement/regression if the change is significant
-        if (!value.HasSignificantChange(significanceThreshold * 100))
+        if (!value.HasSignificantChange())
             return ":white_circle:";
 
         if (value.IsImprovement())

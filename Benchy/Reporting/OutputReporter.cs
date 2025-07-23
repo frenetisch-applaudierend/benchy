@@ -44,7 +44,7 @@ public class OutputReporter : IReporter
 
         foreach (var comparison in result.Comparisons)
         {
-            PrintComparsion(comparison, result.SignificanceThreshold);
+            PrintComparsion(comparison);
         }
 
         PrintSummary(result);
@@ -53,12 +53,10 @@ public class OutputReporter : IReporter
     private static void PrintSummary(BenchmarkComparisonResult result)
     {
         var improvements = result.Comparisons.Count(c =>
-            c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
-            && c.Statistics.Mean.Delta < 0.0
+            c.Statistics.Mean.IsSignificantImprovement()
         );
         var regressions = result.Comparisons.Count(c =>
-            c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
-            && c.Statistics.Mean.Delta > 0.0
+            c.Statistics.Mean.IsSignificantRegression()
         );
 
         if (improvements == 0 && regressions == 0)
@@ -75,39 +73,20 @@ public class OutputReporter : IReporter
         }
     }
 
-    private static void PrintComparsion(
-        BenchmarkComparison comparison,
-        double significanceThreshold
-    )
+    private static void PrintComparsion(BenchmarkComparison comparison)
     {
         CliOutput.Info($"{Decor("🏁 ")}Results for {Em(comparison.FullName)}", indent: 1);
 
-        PrintDuration(
-            name: "Mean",
-            value: comparison.Statistics.Mean,
-            significanceThreshold: significanceThreshold
-        );
-        PrintDuration(
-            name: "Error",
-            value: comparison.Statistics.StandardError,
-            significanceThreshold: significanceThreshold
-        );
-        PrintDuration(
-            name: "StdDev",
-            value: comparison.Statistics.StandardDeviation,
-            significanceThreshold: significanceThreshold
-        );
+        PrintDuration(name: "Mean", value: comparison.Statistics.Mean);
+        PrintDuration(name: "Error", value: comparison.Statistics.StandardError);
+        PrintDuration(name: "StdDev", value: comparison.Statistics.StandardDeviation);
     }
 
-    private static void PrintDuration(
-        string name,
-        ComparisonValue<double> value,
-        double significanceThreshold
-    )
+    private static void PrintDuration(string name, ComparisonValue<double> value)
     {
         var (baseline, target) = FormatDuration(value);
 
-        var resultSymbol = GetResultSymbol(value, significanceThreshold);
+        var resultSymbol = GetResultSymbol(value);
 
         var percentageChange =
             value.Direction != MetricDirection.Irrelevant
@@ -121,10 +100,7 @@ public class OutputReporter : IReporter
         );
     }
 
-    private static FormattedText GetResultSymbol(
-        ComparisonValue<double> value,
-        double significanceThreshold
-    )
+    private static FormattedText GetResultSymbol(ComparisonValue<double> value)
     {
         if (value.Direction == MetricDirection.Irrelevant)
             return Irrelevant;
@@ -132,7 +108,7 @@ public class OutputReporter : IReporter
         if (value.Baseline == null || value.Target == null)
             return Uncompared;
 
-        if (!value.HasSignificantChange(significanceThreshold * 100))
+        if (!value.HasSignificantChange())
             return Stable;
 
         if (value.IsImprovement())
