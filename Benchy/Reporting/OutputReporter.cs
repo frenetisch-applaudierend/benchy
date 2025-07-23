@@ -85,19 +85,16 @@ public class OutputReporter : IReporter
         PrintDuration(
             name: "Mean",
             value: comparison.Statistics.Mean,
-            comparisonType: ComparisonType.LowerIsBetter,
             significanceThreshold: significanceThreshold
         );
         PrintDuration(
             name: "Error",
             value: comparison.Statistics.StandardError,
-            comparisonType: ComparisonType.Irrelevant,
             significanceThreshold: significanceThreshold
         );
         PrintDuration(
             name: "StdDev",
             value: comparison.Statistics.StandardDeviation,
-            comparisonType: ComparisonType.Irrelevant,
             significanceThreshold: significanceThreshold
         );
     }
@@ -105,16 +102,15 @@ public class OutputReporter : IReporter
     private static void PrintDuration(
         string name,
         ComparisonValue<double> value,
-        ComparisonType comparisonType,
         double significanceThreshold
     )
     {
         var (baseline, target) = FormatDuration(value);
 
-        var resultSymbol = GetResultSymbol(value, comparisonType, significanceThreshold);
+        var resultSymbol = GetResultSymbol(value, significanceThreshold);
 
         var percentageChange =
-            comparisonType != ComparisonType.Irrelevant
+            value.Direction != MetricDirection.Irrelevant
             && value.PercentageChange is { } percentageChangeValue
                 ? $" ({percentageChangeValue:F1} %)"
                 : "";
@@ -127,11 +123,10 @@ public class OutputReporter : IReporter
 
     private static FormattedText GetResultSymbol(
         ComparisonValue<double> value,
-        ComparisonType comparisonType,
         double significanceThreshold
     )
     {
-        if (comparisonType == ComparisonType.Irrelevant)
+        if (value.Direction == MetricDirection.Irrelevant)
             return Irrelevant;
 
         if (value.Baseline == null || value.Target == null)
@@ -140,17 +135,17 @@ public class OutputReporter : IReporter
         if (!value.HasSignificantChange(significanceThreshold * 100))
             return Stable;
 
-        if (value.Delta < 0.0)
+        if (value.IsImprovement())
         {
-            return comparisonType == ComparisonType.LowerIsBetter
-                ? ImprovementLower
-                : RegressionLower;
+            return value.Delta < 0.0 ? ImprovementLower : ImprovementHigher;
+        }
+        else if (value.IsRegression())
+        {
+            return value.Delta < 0.0 ? RegressionLower : RegressionHigher;
         }
         else
         {
-            return comparisonType == ComparisonType.HigherIsBetter
-                ? ImprovementHigher
-                : RegressionHigher;
+            return Stable;
         }
     }
 
@@ -196,12 +191,5 @@ public class OutputReporter : IReporter
 
             return $"{value:F2} {unit}";
         }
-    }
-
-    private enum ComparisonType
-    {
-        Irrelevant,
-        LowerIsBetter,
-        HigherIsBetter,
     }
 }

@@ -38,12 +38,12 @@ public sealed record BenchmarkComparisonResult(
         return new BenchmarkComparisonResult(comparisons, significanceThreshold);
     }
 
-    public bool IsSignificantImprovement(BenchmarkComparison comparison, bool lowerIsBetter) =>
-        comparison.Statistics.Mean.IsImprovement(lowerIsBetter)
+    public bool IsSignificantImprovement(BenchmarkComparison comparison) =>
+        comparison.Statistics.Mean.IsImprovement()
         && comparison.Statistics.Mean.HasSignificantChange(SignificanceThreshold * 100);
 
-    public bool IsSignificantRegression(BenchmarkComparison comparison, bool lowerIsBetter) =>
-        comparison.Statistics.Mean.IsRegression(lowerIsBetter)
+    public bool IsSignificantRegression(BenchmarkComparison comparison) =>
+        comparison.Statistics.Mean.IsRegression()
         && comparison.Statistics.Mean.HasSignificantChange(SignificanceThreshold * 100);
 }
 
@@ -93,21 +93,51 @@ public sealed record BenchmarkComparison(
         )
         {
             return new StatisticsComparison(
-                Mean: new ComparisonValue<double>(baseline?.Mean, target?.Mean),
-                Min: new ComparisonValue<double>(baseline?.Min, target?.Min),
-                Max: new ComparisonValue<double>(baseline?.Max, target?.Max),
-                Median: new ComparisonValue<double>(baseline?.Median, target?.Median),
+                Mean: new ComparisonValue<double>(
+                    baseline?.Mean,
+                    target?.Mean,
+                    MetricDirection.LowerIsBetter
+                ),
+                Min: new ComparisonValue<double>(
+                    baseline?.Min,
+                    target?.Min,
+                    MetricDirection.LowerIsBetter
+                ),
+                Max: new ComparisonValue<double>(
+                    baseline?.Max,
+                    target?.Max,
+                    MetricDirection.LowerIsBetter
+                ),
+                Median: new ComparisonValue<double>(
+                    baseline?.Median,
+                    target?.Median,
+                    MetricDirection.LowerIsBetter
+                ),
                 StandardDeviation: new ComparisonValue<double>(
                     baseline?.StandardDeviation,
-                    target?.StandardDeviation
+                    target?.StandardDeviation,
+                    MetricDirection.Irrelevant
                 ),
                 StandardError: new ComparisonValue<double>(
                     baseline?.StandardError,
-                    target?.StandardError
+                    target?.StandardError,
+                    MetricDirection.Irrelevant
                 ),
-                Variance: new ComparisonValue<double>(baseline?.Variance, target?.Variance),
-                Skewness: new ComparisonValue<double>(baseline?.Skewness, target?.Skewness),
-                Kurtosis: new ComparisonValue<double>(baseline?.Kurtosis, target?.Kurtosis),
+                Variance: new ComparisonValue<double>(
+                    baseline?.Variance,
+                    target?.Variance,
+                    MetricDirection.Irrelevant
+                ),
+                Skewness: new ComparisonValue<double>(
+                    baseline?.Skewness,
+                    target?.Skewness,
+                    MetricDirection.Irrelevant
+                ),
+                Kurtosis: new ComparisonValue<double>(
+                    baseline?.Kurtosis,
+                    target?.Kurtosis,
+                    MetricDirection.Irrelevant
+                ),
                 ConfidenceInterval: ConfidenceIntervalComparison.FromConfidenceInterval(
                     baseline?.ConfidenceInterval,
                     target?.ConfidenceInterval
@@ -136,23 +166,28 @@ public sealed record BenchmarkComparison(
             return new MemoryMetricsComparison(
                 BytesAllocatedPerOperation: new ComparisonValue<int>(
                     baseline?.BytesAllocatedPerOperation,
-                    target?.BytesAllocatedPerOperation
+                    target?.BytesAllocatedPerOperation,
+                    MetricDirection.LowerIsBetter
                 ),
                 Gen0Collections: new ComparisonValue<int>(
                     baseline?.Gen0Collections,
-                    target?.Gen0Collections
+                    target?.Gen0Collections,
+                    MetricDirection.LowerIsBetter
                 ),
                 Gen1Collections: new ComparisonValue<int>(
                     baseline?.Gen1Collections,
-                    target?.Gen1Collections
+                    target?.Gen1Collections,
+                    MetricDirection.LowerIsBetter
                 ),
                 Gen2Collections: new ComparisonValue<int>(
                     baseline?.Gen2Collections,
-                    target?.Gen2Collections
+                    target?.Gen2Collections,
+                    MetricDirection.LowerIsBetter
                 ),
                 TotalOperations: new ComparisonValue<long>(
                     baseline?.TotalOperations,
-                    target?.TotalOperations
+                    target?.TotalOperations,
+                    MetricDirection.HigherIsBetter
                 )
             );
         }
@@ -174,16 +209,37 @@ public sealed record BenchmarkComparison(
         )
         {
             return new ConfidenceIntervalComparison(
-                N: new ComparisonValue<int>(baseline?.N, target?.N),
-                Mean: new ComparisonValue<double>(baseline?.Mean, target?.Mean),
+                N: new ComparisonValue<int>(baseline?.N, target?.N, MetricDirection.Irrelevant),
+                Mean: new ComparisonValue<double>(
+                    baseline?.Mean,
+                    target?.Mean,
+                    MetricDirection.LowerIsBetter
+                ),
                 StandardError: new ComparisonValue<double>(
                     baseline?.StandardError,
-                    target?.StandardError
+                    target?.StandardError,
+                    MetricDirection.Irrelevant
                 ),
-                Level: new ComparisonValue<int>(baseline?.Level, target?.Level),
-                Margin: new ComparisonValue<double>(baseline?.Margin, target?.Margin),
-                Lower: new ComparisonValue<double>(baseline?.Lower, target?.Lower),
-                Upper: new ComparisonValue<double>(baseline?.Upper, target?.Upper)
+                Level: new ComparisonValue<int>(
+                    baseline?.Level,
+                    target?.Level,
+                    MetricDirection.Irrelevant
+                ),
+                Margin: new ComparisonValue<double>(
+                    baseline?.Margin,
+                    target?.Margin,
+                    MetricDirection.LowerIsBetter
+                ),
+                Lower: new ComparisonValue<double>(
+                    baseline?.Lower,
+                    target?.Lower,
+                    MetricDirection.LowerIsBetter
+                ),
+                Upper: new ComparisonValue<double>(
+                    baseline?.Upper,
+                    target?.Upper,
+                    MetricDirection.LowerIsBetter
+                )
             );
         }
     }
@@ -206,21 +262,57 @@ public sealed record BenchmarkComparison(
         )
         {
             return new PercentilesComparison(
-                P0: new ComparisonValue<double>(baseline?.P0, target?.P0),
-                P25: new ComparisonValue<double>(baseline?.P25, target?.P25),
-                P50: new ComparisonValue<double>(baseline?.P50, target?.P50),
-                P67: new ComparisonValue<double>(baseline?.P67, target?.P67),
-                P80: new ComparisonValue<double>(baseline?.P80, target?.P80),
-                P85: new ComparisonValue<double>(baseline?.P85, target?.P85),
-                P90: new ComparisonValue<double>(baseline?.P90, target?.P90),
-                P95: new ComparisonValue<double>(baseline?.P95, target?.P95),
-                P100: new ComparisonValue<double>(baseline?.P100, target?.P100)
+                P0: new ComparisonValue<double>(
+                    baseline?.P0,
+                    target?.P0,
+                    MetricDirection.LowerIsBetter
+                ),
+                P25: new ComparisonValue<double>(
+                    baseline?.P25,
+                    target?.P25,
+                    MetricDirection.LowerIsBetter
+                ),
+                P50: new ComparisonValue<double>(
+                    baseline?.P50,
+                    target?.P50,
+                    MetricDirection.LowerIsBetter
+                ),
+                P67: new ComparisonValue<double>(
+                    baseline?.P67,
+                    target?.P67,
+                    MetricDirection.LowerIsBetter
+                ),
+                P80: new ComparisonValue<double>(
+                    baseline?.P80,
+                    target?.P80,
+                    MetricDirection.LowerIsBetter
+                ),
+                P85: new ComparisonValue<double>(
+                    baseline?.P85,
+                    target?.P85,
+                    MetricDirection.LowerIsBetter
+                ),
+                P90: new ComparisonValue<double>(
+                    baseline?.P90,
+                    target?.P90,
+                    MetricDirection.LowerIsBetter
+                ),
+                P95: new ComparisonValue<double>(
+                    baseline?.P95,
+                    target?.P95,
+                    MetricDirection.LowerIsBetter
+                ),
+                P100: new ComparisonValue<double>(
+                    baseline?.P100,
+                    target?.P100,
+                    MetricDirection.LowerIsBetter
+                )
             );
         }
     }
 }
 
-public sealed record ComparisonValue<T>(T? Baseline, T? Target)
+public sealed record ComparisonValue<T>(T? Baseline, T? Target, MetricDirection Direction)
     where T : struct, IComparable<T>, INumber<T>
 {
     public T? Delta => Baseline.HasValue && Target.HasValue ? Target.Value - Baseline.Value : null;
@@ -238,14 +330,33 @@ public sealed record ComparisonValue<T>(T? Baseline, T? Target)
         }
     }
 
-    public bool IsImprovement(bool lowerIsBetter = true) =>
+    public bool IsImprovement() =>
         Delta.HasValue
-        && (lowerIsBetter ? Delta.Value.CompareTo(T.Zero) < 0 : Delta.Value.CompareTo(T.Zero) > 0);
+        && Direction switch
+        {
+            MetricDirection.LowerIsBetter => Delta.Value.CompareTo(T.Zero) < 0,
+            MetricDirection.HigherIsBetter => Delta.Value.CompareTo(T.Zero) > 0,
+            MetricDirection.Irrelevant => false,
+            _ => false,
+        };
 
-    public bool IsRegression(bool lowerIsBetter = true) =>
+    public bool IsRegression() =>
         Delta.HasValue
-        && (lowerIsBetter ? Delta.Value.CompareTo(T.Zero) > 0 : Delta.Value.CompareTo(T.Zero) < 0);
+        && Direction switch
+        {
+            MetricDirection.LowerIsBetter => Delta.Value.CompareTo(T.Zero) > 0,
+            MetricDirection.HigherIsBetter => Delta.Value.CompareTo(T.Zero) < 0,
+            MetricDirection.Irrelevant => false,
+            _ => false,
+        };
 
     public bool HasSignificantChange(double thresholdPercent) =>
         PercentageChange.HasValue && Math.Abs(PercentageChange.Value) >= thresholdPercent;
+}
+
+public enum MetricDirection
+{
+    LowerIsBetter,
+    HigherIsBetter,
+    Irrelevant,
 }
