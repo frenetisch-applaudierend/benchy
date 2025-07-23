@@ -53,9 +53,11 @@ public class JsonReporter : IReporter
     {
         var improvements = result.Comparisons.Count(c =>
             c.Statistics.Mean.IsImprovement(lowerIsBetter: true)
+            && c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
         );
         var regressions = result.Comparisons.Count(c =>
             c.Statistics.Mean.IsRegression(lowerIsBetter: true)
+            && c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
         );
         var unchanged = result.Comparisons.Count - improvements - regressions;
 

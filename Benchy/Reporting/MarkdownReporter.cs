@@ -38,9 +38,11 @@ public class MarkdownReporter(string outputPath) : IReporter
         var totalBenchmarks = result.Comparisons.Count;
         var improvements = result.Comparisons.Count(c =>
             c.Statistics.Mean.IsImprovement(lowerIsBetter: true)
+            && c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
         );
         var regressions = result.Comparisons.Count(c =>
             c.Statistics.Mean.IsRegression(lowerIsBetter: true)
+            && c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
         );
         var unchanged = totalBenchmarks - improvements - regressions;
 
@@ -73,12 +75,16 @@ public class MarkdownReporter(string outputPath) : IReporter
 
         foreach (var comparison in result.Comparisons)
         {
-            WriteBenchmarkComparison(markdown, comparison);
+            WriteBenchmarkComparison(markdown, comparison, result.SignificanceThreshold);
             markdown.AppendLine();
         }
     }
 
-    private void WriteBenchmarkComparison(StringBuilder markdown, BenchmarkComparison comparison)
+    private void WriteBenchmarkComparison(
+        StringBuilder markdown,
+        BenchmarkComparison comparison,
+        double significanceThreshold
+    )
     {
         WriteHeader(markdown, comparison.FullName, 3);
         markdown.AppendLine();
@@ -90,23 +96,53 @@ public class MarkdownReporter(string outputPath) : IReporter
         markdown.AppendLine("| Metric | Baseline | Target | Delta | % Change | Status |");
         markdown.AppendLine("|--------|----------|--------|-------|----------|--------|");
 
-        WriteMetricRow(markdown, "Mean", comparison.Statistics.Mean, "ns", lowerIsBetter: true);
-        WriteMetricRow(markdown, "Median", comparison.Statistics.Median, "ns", lowerIsBetter: true);
-        WriteMetricRow(markdown, "Min", comparison.Statistics.Min, "ns", lowerIsBetter: true);
-        WriteMetricRow(markdown, "Max", comparison.Statistics.Max, "ns", lowerIsBetter: true);
+        WriteMetricRow(
+            markdown,
+            "Mean",
+            comparison.Statistics.Mean,
+            "ns",
+            lowerIsBetter: true,
+            significanceThreshold
+        );
+        WriteMetricRow(
+            markdown,
+            "Median",
+            comparison.Statistics.Median,
+            "ns",
+            lowerIsBetter: true,
+            significanceThreshold
+        );
+        WriteMetricRow(
+            markdown,
+            "Min",
+            comparison.Statistics.Min,
+            "ns",
+            lowerIsBetter: true,
+            significanceThreshold
+        );
+        WriteMetricRow(
+            markdown,
+            "Max",
+            comparison.Statistics.Max,
+            "ns",
+            lowerIsBetter: true,
+            significanceThreshold
+        );
         WriteMetricRow(
             markdown,
             "Std Dev",
             comparison.Statistics.StandardDeviation,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "Std Error",
             comparison.Statistics.StandardError,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
 
         markdown.AppendLine();
@@ -123,28 +159,32 @@ public class MarkdownReporter(string outputPath) : IReporter
             "Allocated",
             comparison.Memory.BytesAllocatedPerOperation,
             "B",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "Gen0",
             comparison.Memory.Gen0Collections,
             "",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "Gen1",
             comparison.Memory.Gen1Collections,
             "",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "Gen2",
             comparison.Memory.Gen2Collections,
             "",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
 
         markdown.AppendLine();
@@ -161,63 +201,72 @@ public class MarkdownReporter(string outputPath) : IReporter
             "P0",
             comparison.Statistics.Percentiles.P0,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "P25",
             comparison.Statistics.Percentiles.P25,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "P50",
             comparison.Statistics.Percentiles.P50,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "P67",
             comparison.Statistics.Percentiles.P67,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "P80",
             comparison.Statistics.Percentiles.P80,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "P85",
             comparison.Statistics.Percentiles.P85,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "P90",
             comparison.Statistics.Percentiles.P90,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "P95",
             comparison.Statistics.Percentiles.P95,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
         WriteMetricRow(
             markdown,
             "P100",
             comparison.Statistics.Percentiles.P100,
             "ns",
-            lowerIsBetter: true
+            lowerIsBetter: true,
+            significanceThreshold
         );
     }
 
@@ -226,7 +275,8 @@ public class MarkdownReporter(string outputPath) : IReporter
         string name,
         ComparisonValue<T> value,
         string unit,
-        bool lowerIsBetter = true
+        bool lowerIsBetter,
+        double significanceThreshold
     )
         where T : struct, IComparable<T>, System.Numerics.INumber<T>
     {
@@ -235,7 +285,7 @@ public class MarkdownReporter(string outputPath) : IReporter
         var delta = value.Delta?.ToString("F2", CultureInfo.InvariantCulture) ?? "N/A";
         var percentage =
             value.PercentageChange?.ToString("F1", CultureInfo.InvariantCulture) ?? "N/A";
-        var status = GetStatusEmoji(value, lowerIsBetter);
+        var status = GetStatusEmoji(value, lowerIsBetter, significanceThreshold);
 
         var baselineText = baseline == "N/A" ? baseline : $"{baseline} {unit}";
         var targetText = target == "N/A" ? target : $"{target} {unit}";
@@ -247,13 +297,21 @@ public class MarkdownReporter(string outputPath) : IReporter
         );
     }
 
-    private static string GetStatusEmoji<T>(ComparisonValue<T> value, bool lowerIsBetter = true)
+    private static string GetStatusEmoji<T>(
+        ComparisonValue<T> value,
+        bool lowerIsBetter,
+        double significanceThreshold
+    )
         where T : struct, IComparable<T>, System.Numerics.INumber<T>
     {
         if (!value.Delta.HasValue)
             return ":question:";
 
         if (value.Delta.Value.Equals(default(T)))
+            return ":white_circle:";
+
+        // Only show improvement/regression if the change is significant
+        if (!value.HasSignificantChange(significanceThreshold * 100))
             return ":white_circle:";
 
         if (value.IsImprovement(lowerIsBetter))
