@@ -79,9 +79,6 @@ public class JsonReporter : IReporter
                 Max = CreateValueData(comparison.Statistics.Max),
                 StandardDeviation = CreateValueData(comparison.Statistics.StandardDeviation),
                 StandardError = CreateValueData(comparison.Statistics.StandardError),
-                Variance = CreateValueData(comparison.Statistics.Variance),
-                Skewness = CreateValueData(comparison.Statistics.Skewness),
-                Kurtosis = CreateValueData(comparison.Statistics.Kurtosis),
                 ConfidenceInterval = new
                 {
                     Mean = CreateValueData(comparison.Statistics.ConfidenceInterval.Mean),

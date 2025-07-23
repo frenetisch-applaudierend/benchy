@@ -38,12 +38,6 @@ public sealed record BenchmarkComparisonResult(
 
         return new BenchmarkComparisonResult(comparisons, significanceThreshold);
     }
-
-    public bool IsSignificantImprovement(BenchmarkComparison comparison) =>
-        comparison.Statistics.Mean.IsSignificantImprovement();
-
-    public bool IsSignificantRegression(BenchmarkComparison comparison) =>
-        comparison.Statistics.Mean.IsSignificantRegression();
 }
 
 public sealed record BenchmarkComparison(
@@ -85,9 +79,6 @@ public sealed record BenchmarkComparison(
         ComparisonValue<double> Median,
         ComparisonValue<double> StandardDeviation,
         ComparisonValue<double> StandardError,
-        ComparisonValue<double> Variance,
-        ComparisonValue<double> Skewness,
-        ComparisonValue<double> Kurtosis,
         ConfidenceIntervalComparison ConfidenceInterval,
         PercentilesComparison Percentiles
     )
@@ -132,24 +123,6 @@ public sealed record BenchmarkComparison(
                 StandardError: new ComparisonValue<double>(
                     baseline?.StandardError,
                     target?.StandardError,
-                    MetricDirection.Irrelevant,
-                    significanceThreshold
-                ),
-                Variance: new ComparisonValue<double>(
-                    baseline?.Variance,
-                    target?.Variance,
-                    MetricDirection.Irrelevant,
-                    significanceThreshold
-                ),
-                Skewness: new ComparisonValue<double>(
-                    baseline?.Skewness,
-                    target?.Skewness,
-                    MetricDirection.Irrelevant,
-                    significanceThreshold
-                ),
-                Kurtosis: new ComparisonValue<double>(
-                    baseline?.Kurtosis,
-                    target?.Kurtosis,
                     MetricDirection.Irrelevant,
                     significanceThreshold
                 ),
@@ -217,10 +190,7 @@ public sealed record BenchmarkComparison(
     }
 
     public sealed record ConfidenceIntervalComparison(
-        ComparisonValue<int> N,
         ComparisonValue<double> Mean,
-        ComparisonValue<double> StandardError,
-        ComparisonValue<int> Level,
         ComparisonValue<double> Margin,
         ComparisonValue<double> Lower,
         ComparisonValue<double> Upper
@@ -233,28 +203,10 @@ public sealed record BenchmarkComparison(
         )
         {
             return new ConfidenceIntervalComparison(
-                N: new ComparisonValue<int>(
-                    baseline?.N,
-                    target?.N,
-                    MetricDirection.Irrelevant,
-                    significanceThreshold
-                ),
                 Mean: new ComparisonValue<double>(
                     baseline?.Mean,
                     target?.Mean,
                     MetricDirection.LowerIsBetter,
-                    significanceThreshold
-                ),
-                StandardError: new ComparisonValue<double>(
-                    baseline?.StandardError,
-                    target?.StandardError,
-                    MetricDirection.Irrelevant,
-                    significanceThreshold
-                ),
-                Level: new ComparisonValue<int>(
-                    baseline?.Level,
-                    target?.Level,
-                    MetricDirection.Irrelevant,
                     significanceThreshold
                 ),
                 Margin: new ComparisonValue<double>(
@@ -400,10 +352,9 @@ public sealed record ComparisonValue<T>(
             _ => false,
         };
 
-    public bool HasSignificantChange(double thresholdPercent) =>
-        PercentageChange.HasValue && Math.Abs(PercentageChange.Value) >= thresholdPercent;
-
-    public bool HasSignificantChange() => HasSignificantChange(SignificanceThreshold * 100);
+    public bool HasSignificantChange() =>
+        PercentageChange.HasValue
+        && Math.Abs(PercentageChange.Value) >= SignificanceThreshold * 100;
 
     public bool IsSignificantImprovement() => IsImprovement() && HasSignificantChange();
 
