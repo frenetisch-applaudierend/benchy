@@ -27,8 +27,6 @@ public abstract class FormattedText
 
     public static FormattedText Em(FormattedText text) => new ColoredText(text, ConsoleColor.Cyan);
 
-    public static FormattedText Dim(FormattedText text) => new ColoredText(text, ConsoleColor.Gray);
-
     public static FormattedText Join(params FormattedText[] parts) => new ConcatenatedText(parts);
 }
 

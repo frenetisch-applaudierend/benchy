@@ -1,4 +1,3 @@
-using System.Globalization;
 using Benchy.Core;
 using Benchy.Output;
 using static Benchy.Output.FormattedText;
@@ -16,12 +15,20 @@ public class OutputReporter : IReporter
         Colored("▲", ConsoleColor.Green),
         "[IMP]"
     );
+    private static readonly FormattedText ImprovementAny = Decor(
+        Colored("▼ ▲", ConsoleColor.Green),
+        "[IMP]"
+    );
     private static readonly FormattedText RegressionLower = Decor(
         Colored("▼", ConsoleColor.Red),
         "[REG]"
     );
     private static readonly FormattedText RegressionHigher = Decor(
         Colored("▲", ConsoleColor.Red),
+        "[REG]"
+    );
+    private static readonly FormattedText RegressionAny = Decor(
+        Colored("▼ ▲", ConsoleColor.Red),
         "[REG]"
     );
     private static readonly FormattedText Stable = Decor(
@@ -38,6 +45,33 @@ public class OutputReporter : IReporter
         foreach (var comparison in result.Comparisons)
         {
             PrintComparsion(comparison, result.SignificanceThreshold);
+        }
+
+        PrintSummary(result);
+    }
+
+    private static void PrintSummary(BenchmarkComparisonResult result)
+    {
+        var improvements = result.Comparisons.Count(c =>
+            c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
+            && c.Statistics.Mean.Delta < 0.0
+        );
+        var regressions = result.Comparisons.Count(c =>
+            c.Statistics.Mean.HasSignificantChange(result.SignificanceThreshold * 100)
+            && c.Statistics.Mean.Delta > 0.0
+        );
+
+        if (improvements == 0 && regressions == 0)
+        {
+            CliOutput.Info($"{Decor("📊 ")}No significant changes detected.");
+        }
+        else
+        {
+            CliOutput.Info($"{Decor("📊 ")}Significant changes detected:");
+            if (improvements > 0)
+                CliOutput.Info($"{ImprovementAny} improvements: {improvements}", indent: 2);
+            if (regressions > 0)
+                CliOutput.Info($"{RegressionAny} regressions: {regressions}", indent: 2);
         }
     }
 

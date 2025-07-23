@@ -41,7 +41,7 @@ public sealed class BenchmarkRun
         foreach (var project in BenchmarkProjects)
         {
             CliOutput.Info(
-                $"{Decor("🛠️  ")}{Dim("Building benchmark project:")} {Em(project.Name)} for {Em(Name)}",
+                $"{Decor("🛠️  ")}Building benchmark project {Em(project.Name)} for {Em(Name)}",
                 indent: 1
             );
             project.Build(verbose);

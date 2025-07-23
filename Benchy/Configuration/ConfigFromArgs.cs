@@ -1,5 +1,3 @@
-using System;
-
 namespace Benchy.Configuration;
 
 public class ConfigFromArgs

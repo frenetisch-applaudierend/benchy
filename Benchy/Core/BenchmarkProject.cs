@@ -1,6 +1,4 @@
 using Benchy.Infrastructure;
-using Benchy.Output;
-using static Benchy.Output.FormattedText;
 
 namespace Benchy.Core;
 

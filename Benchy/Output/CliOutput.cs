@@ -1,5 +1,3 @@
-using System;
-
 namespace Benchy.Output;
 
 public static class CliOutput
