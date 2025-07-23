@@ -12,7 +12,8 @@
 				"csharpier.csharpier-vscode",
 				"Anthropic.claude-code",
 				"yzhang.markdown-all-in-one",
-				"tamasfe.even-better-toml"
+				"tamasfe.even-better-toml",
+				"redhat.vscode-yaml"
 			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh"
